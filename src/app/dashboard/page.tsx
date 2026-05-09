@@ -155,7 +155,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-800">
           <a href={`tel:${center?.phone}`} className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
             <Phone className="w-4 h-4" />
-            Contact Center
+            Contact Centre
           </a>
           {booking.status === 'confirmed' && (
             <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors ml-auto">

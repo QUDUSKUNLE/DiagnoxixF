@@ -9,7 +9,6 @@ export default function Header({ active = 'home' }: { active?: string }) {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <img src="/images/logo.svg" alt="DiagnoxixAI" className="h-8 w-auto" />
-            {/* <span className="text-xl font-semibold text-blue-600">DiagnoxixAI</span> */}
           </Link>
 
           {/* Navigation */}

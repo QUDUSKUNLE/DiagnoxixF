@@ -20,7 +20,7 @@ export default function HeroSection() {
             Get the App
           </Link>
           <Link href="/join" className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg hover:bg-blue-50 text-lg font-medium">
-            Join as a Diagnostic Center
+            Join as a Diagnostic Centre
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">

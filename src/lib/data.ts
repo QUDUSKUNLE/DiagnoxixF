@@ -1,16 +1,16 @@
 import {
-  DiagnosticCenter,
-  Practitioner,
-  PractitionerGender,
-  TestOffering,
-  TestType
+    DiagnosticCenter,
+    Practitioner,
+    PractitionerGender,
+    TestOffering,
+    TestType
 } from '@/types';
 
 // Mock diagnostic centers
 export const mockCenters: DiagnosticCenter[] = [
   {
     id: '1',
-    name: 'City Health Diagnostic Center',
+    name: 'City Health Diagnostic Centre',
     address: '123 Main Street, Downtown',
     latitude: 6.5244,
     longitude: 3.3792,
@@ -84,29 +84,29 @@ export const mockPractitioners: Practitioner[] = [
 
 // Mock test offerings
 export const mockTestOfferings: TestOffering[] = [
-  // Center 1 offerings
+  // Centre 1 offerings
   { id: '1', centerId: '1', testTypeId: '1', practitionerId: '1', cost: 5000, duration: 30, available: true },
   { id: '2', centerId: '1', testTypeId: '2', practitionerId: '2', cost: 45000, duration: 60, available: true },
   { id: '3', centerId: '1', testTypeId: '4', practitionerId: '2', cost: 8000, duration: 20, available: true },
   { id: '4', centerId: '1', testTypeId: '8', practitionerId: '5', cost: 15000, duration: 30, available: true },
   
-  // Center 2 offerings
+  // Centre 2 offerings
   { id: '5', centerId: '2', testTypeId: '1', practitionerId: '1', cost: 5500, duration: 30, available: true },
   { id: '6', centerId: '2', testTypeId: '3', practitionerId: '2', cost: 50000, duration: 45, available: true },
   { id: '7', centerId: '2', testTypeId: '5', practitionerId: '3', cost: 12000, duration: 30, available: true },
   { id: '8', centerId: '2', testTypeId: '6', practitionerId: '4', cost: 7000, duration: 30, available: true },
   
-  // Center 3 offerings
+  // Centre 3 offerings
   { id: '9', centerId: '3', testTypeId: '1', practitionerId: '5', cost: 4800, duration: 30, available: true },
   { id: '10', centerId: '3', testTypeId: '2', practitionerId: '3', cost: 42000, duration: 60, available: true },
   { id: '11', centerId: '3', testTypeId: '7', practitionerId: '5', cost: 6000, duration: 20, available: true },
   
-  // Center 4 offerings
+  // Centre 4 offerings
   { id: '12', centerId: '4', testTypeId: '4', practitionerId: '6', cost: 7500, duration: 20, available: true },
   { id: '13', centerId: '4', testTypeId: '6', practitionerId: '4', cost: 6500, duration: 30, available: true },
   { id: '14', centerId: '4', testTypeId: '8', practitionerId: '5', cost: 14000, duration: 30, available: true },
   
-  // Center 5 offerings
+  // Centre 5 offerings
   { id: '15', centerId: '5', testTypeId: '1', practitionerId: '1', cost: 5200, duration: 30, available: true },
   { id: '16', centerId: '5', testTypeId: '5', practitionerId: '3', cost: 11000, duration: 30, available: true },
   { id: '17', centerId: '5', testTypeId: '7', practitionerId: '5', cost: 5800, duration: 20, available: true },

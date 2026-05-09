@@ -67,7 +67,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <Link href="/join" className="mt-8 inline-block border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50">
-              Join as a Diagnostic Center
+              Join as a Diagnostic Centre
             </Link>
           </div>
         </div>
