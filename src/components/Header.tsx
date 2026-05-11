@@ -1,7 +1,11 @@
 // src/components/Header.tsx
 import Link from 'next/link';
 
-export default function Header({ active = 'home' }: { active?: string }) {
+type HeaderProps = {
+  active?: string;
+};
+
+export default function Header({ active = 'home' }: HeaderProps ) {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,12 +32,11 @@ export default function Header({ active = 'home' }: { active?: string }) {
 </nav>
 
           {/* Buttons */}
-          <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-4 ${
+            active === 'login' ? 'invisible' : ''
+          }`}>
             <Link href="/login" className="text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
               Login
-            </Link>
-            <Link href="/get-started" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-              Get Started
             </Link>
           </div>
         </div>

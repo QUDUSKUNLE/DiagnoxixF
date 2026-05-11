@@ -4,7 +4,7 @@ export default function AboutUsPage() {
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold text-gray-900 mb-4">About DiagnoxixAI</h1>
+          <h1 className="text-6xl font-bold text-gray-900 mb-4">About <span className="text-blue-600">DiagnoxixAI</span></h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Revolutionizing healthcare access through innovative technology and transparent connections.
           </p>
