@@ -5,7 +5,7 @@ export default function HowItWorksPage() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
           <h1 className="text-6xl font-bold text-gray-900 mb-4">
-            How DiagnoxixAI Works
+            How <span className="text-blue-600">DiagnoxixAI</span> Works
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Whether you're a patient seeking tests or a centre looking to grow, our platform makes healthcare connections seamless.
