@@ -69,40 +69,6 @@ export default function AboutUsPage() {
           </div>
         </div>
 
-        {/* Team Section */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
-            <p className="text-xl text-gray-600">The passionate professionals behind DiagnoxixAI</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-4xl">👨‍💼</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">John Doe</h3>
-              <p className="text-blue-600 mb-2">CEO & Founder</p>
-              <p className="text-gray-600">Healthcare industry veteran with 15+ years experience.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-4xl">👩‍💻</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Jane Smith</h3>
-              <p className="text-blue-600 mb-2">CTO</p>
-              <p className="text-gray-600">Tech innovator focused on healthcare technology solutions.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-4xl">👨‍⚕️</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Dr. Michael Johnson</h3>
-              <p className="text-blue-600 mb-2">Medical Director</p>
-              <p className="text-gray-600">Ensuring medical accuracy and compliance in all our services.</p>
-            </div>
-          </div>
-        </div>
-
         {/* CTA Section */}
         <div className="text-center bg-gray-50 p-12 rounded-lg">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Join Our Mission</h2>
