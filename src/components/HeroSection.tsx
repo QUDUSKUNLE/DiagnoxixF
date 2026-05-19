@@ -10,10 +10,10 @@ export default function HeroSection() {
           Find <span className="text-blue-600">diagnostic centres</span> near you.
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Negotiate prices. Book instantly.
+          Compare prices. Book and pay online.
         </p>
         <p className="text-lg text-gray-700 mb-12 max-w-3xl mx-auto">
-          A real-time healthcare marketplace that connects patients with verified diagnostic centres fast, transparent, and trusted.
+          A trusted marketplace connecting patients with diagnostic centres fast, transparent, and simple.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
           <Link href="/dashboard" className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 text-lg font-medium">
