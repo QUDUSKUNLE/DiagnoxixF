@@ -1,6 +1,6 @@
 'use client';
 
-import { isAuthenticated, login, register } from '@/lib/auth';
+import { getCurrentUser, getPostLoginPath, isAuthenticated, login, register } from '@/lib/auth';
 import { LoginCredentials, RegisterData } from '@/types/auth';
 import { Lock, Mail, Phone, Stethoscope, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,8 +23,9 @@ export default function Login() {
   });
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.push('/centre-dashboard');
+    const user = getCurrentUser();
+    if (user) {
+      router.push(getPostLoginPath(user));
     }
   }, [router]);
 
@@ -34,8 +35,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(loginForm);
-      router.push('/centre-dashboard');
+      const user = await login(loginForm);
+      router.push(getPostLoginPath(user));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -49,8 +50,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await register(registerForm);
-      router.push('/centre-dashboard');
+      const user = await register(registerForm);
+      router.push(getPostLoginPath(user));
     } catch (err: any) {
       setError(err.message);
     } finally {

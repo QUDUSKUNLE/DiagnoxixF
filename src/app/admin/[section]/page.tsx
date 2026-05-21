@@ -5,11 +5,11 @@ export function generateStaticParams() {
   return Object.keys(managerSections).map((section) => ({ section }));
 }
 
-export default async function CentreDashboardSectionPage({
+export default async function AdminDashboardSectionPage({
   params,
 }: {
   params: Promise<{ section: string }>;
 }) {
   const { section } = await params;
-  return <ManagerSectionView section={section} basePath="/centre-dashboard" />;
+  return <ManagerSectionView section={section} basePath="/admin" />;
 }

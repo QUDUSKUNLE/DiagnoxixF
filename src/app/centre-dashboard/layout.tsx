@@ -5,10 +5,10 @@ export const metadata = {
   description: 'Diagnostic centre dashboard',
 };
 
-export default function CentreManagerLayout({
+export default function CentreDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <ManagerLayout>{children}</ManagerLayout>;
+  return <ManagerLayout basePath="/centre-dashboard">{children}</ManagerLayout>;
 }

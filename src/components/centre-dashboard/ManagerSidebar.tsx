@@ -2,36 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Building2,
-  Calendar,
-  ChevronLeft,
-  CreditCard,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  ShieldCheck,
-  UserCog,
-  Users,
-  Headphones,
-} from 'lucide-react';
+import { ChevronLeft, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import type { ManagerNavItem } from './types';
-
-const mainNav: ManagerNavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/centre-dashboard' },
-  { id: 'patients', label: 'Patients', icon: Users, href: '/centre-dashboard/patients' },
-  { id: 'centres', label: 'Centres', icon: Building2, href: '/centre-dashboard/centres' },
-  { id: 'bookings', label: 'Bookings', icon: Calendar, href: '/centre-dashboard/bookings' },
-  { id: 'payments', label: 'Payments', icon: CreditCard, href: '/centre-dashboard/payments' },
-  { id: 'verifications', label: 'Verifications', icon: ShieldCheck, href: '/centre-dashboard/verifications' },
-];
-
-const secondaryNav: ManagerNavItem[] = [
-  { id: 'roles', label: 'Roles & Permissions', icon: UserCog, href: '/centre-dashboard/roles' },
-  { id: 'settings', label: 'Settings & Security', icon: Settings, href: '/centre-dashboard/settings' },
-  { id: 'support', label: 'Support', icon: Headphones, href: '/centre-dashboard/support' },
-];
+import {
+  type DashboardBasePath,
+  getManagerNavItems,
+  isManagerNavActive,
+} from '@/lib/manager-routes';
 
 function NavLink({
   item,
@@ -59,15 +37,14 @@ function NavLink({
 }
 
 interface ManagerSidebarProps {
+  basePath: DashboardBasePath;
   onLogout: () => void;
 }
 
-export default function ManagerSidebar({ onLogout }: ManagerSidebarProps) {
+export default function ManagerSidebar({ basePath, onLogout }: ManagerSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-
-  const isActive = (href: string) =>
-    href === '/centre-dashboard' ? pathname === href : pathname.startsWith(href);
+  const { mainNav, secondaryNav } = getManagerNavItems(basePath);
 
   return (
     <aside
@@ -90,7 +67,7 @@ export default function ManagerSidebar({ onLogout }: ManagerSidebarProps) {
               key={item.id}
               item={item}
               collapsed={collapsed}
-              active={isActive(item.href)}
+              active={isManagerNavActive(pathname, basePath, item.href)}
             />
           ))}
 
@@ -101,7 +78,7 @@ export default function ManagerSidebar({ onLogout }: ManagerSidebarProps) {
               key={item.id}
               item={item}
               collapsed={collapsed}
-              active={isActive(item.href)}
+              active={isManagerNavActive(pathname, basePath, item.href)}
             />
           ))}
 

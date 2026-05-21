@@ -1,19 +1,21 @@
 'use client';
 
 import BrandLogo from '@/components/BrandLogo';
+import type { DashboardBasePath } from '@/lib/manager-routes';
 import { Bell, ChevronDown, Search } from 'lucide-react';
 import Image from 'next/image';
 
 interface ManagerHeaderProps {
   userName: string;
+  basePath: DashboardBasePath;
 }
 
-export default function ManagerHeader({ userName }: ManagerHeaderProps) {
+export default function ManagerHeader({ userName, basePath }: ManagerHeaderProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-[#e4e7ec] bg-white px-6 py-4 lg:px-10">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-1 items-center gap-6">
-          <BrandLogo href="/centre-dashboard" className="h-8 w-auto" />
+          <BrandLogo href={basePath} className="h-8 w-auto" />
           <label className="relative flex flex-1 max-w-xl items-center">
             <Search className="pointer-events-none absolute left-4 h-5 w-5 text-[#9ca3af]" />
             <input
