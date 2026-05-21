@@ -1,8 +1,12 @@
+import { AUTH_TOKEN_KEY } from '@/lib/auth-storage';
+
 // API Configuration
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7556/api';
 
 // API Endpoints
 export const API_ENDPOINTS = {
+  AUTH_LOGIN: '/auth/login',
+
   // Centers
   CENTERS: '/centers',
   CENTERS_SEARCH: '/centers/search',
@@ -33,24 +37,44 @@ export function getApiUrl(endpoint: string): string {
 }
 
 // Helper function for API calls
+function getAuthHeaders(): HeadersInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
+
 export async function apiCall<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const url = getApiUrl(endpoint);
   const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
     ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...(options.headers as Record<string, string>),
+    },
   });
 
+  const body = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    const message =
+      body?.message ||
+      body?.data?.message ||
+      `Request failed (${response.status})`;
+    throw new Error(message);
   }
 
-  return response.json();
+  return body as T;
 }
 

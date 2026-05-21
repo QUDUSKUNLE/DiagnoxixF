@@ -1,6 +1,6 @@
 'use client';
 
-import { getCurrentUser, logout } from '@/lib/auth';
+import { canAccessCentreDashboard, getCurrentUser, getPostLoginPath, logout } from '@/lib/auth';
 import { mockCenters, mockTestTypes } from '@/lib/data';
 import { formatCurrency, formatDistance } from '@/lib/utils';
 import { Booking } from '@/types';
