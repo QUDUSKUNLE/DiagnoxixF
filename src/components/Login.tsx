@@ -24,7 +24,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      router.push('/dashboard');
+      router.push('/centre-dashboard');
     }
   }, [router]);
 
@@ -35,7 +35,7 @@ export default function Login() {
 
     try {
       await login(loginForm);
-      router.push('/dashboard');
+      router.push('/centre-dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -50,7 +50,7 @@ export default function Login() {
 
     try {
       await register(registerForm);
-      router.push('/dashboard');
+      router.push('/centre-dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {
