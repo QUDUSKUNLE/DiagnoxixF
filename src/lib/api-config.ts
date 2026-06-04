@@ -8,8 +8,11 @@ export const API_ENDPOINTS = {
   AUTH_LOGIN: '/login',
   FORGOT_PASSWORD: '/request_password_reset',
   RESET_PASSWORD: '/reset_password',
+  VERIFY_EMAIL: '/verify_email',
+  RESEND_VERIFICATION: '/resend_verification',
 
   POST_METHOD: 'POST',
+  GET_METHOD:  'GET',
 
   // Centers
   CENTERS: '/centers',

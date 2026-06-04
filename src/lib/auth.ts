@@ -10,8 +10,8 @@ import {
   LoginApiResponse,
   LoginCredentials,
   RegisterData,
-  User,
   ResetPasswordRequest,
+  User,
 } from '@/types/auth';
 
 
@@ -174,6 +174,35 @@ export async function resetPassword(data: ResetPasswordRequest): Promise<User> {
   }
 
   throw new Error('Failed to reset password');
+}
+
+export async function verifyEmail(token: string, email: string): Promise<void> {
+  const response = await fetch(getApiUrl(`${API_ENDPOINTS.VERIFY_EMAIL}?token=${token}&email=${email}`), {
+    method: API_ENDPOINTS.GET_METHOD,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const body = (await response.json().catch(() => ({}))) as any;
+
+  if (!response.ok || !body.success) {
+    throw new Error(body.error?.message || body.message || 'Email verification failed');
+  }
+}
+
+export async function resendVerification(email: string): Promise<void> {
+  const response = await fetch(getApiUrl(API_ENDPOINTS.RESEND_VERIFICATION), {
+    method: API_ENDPOINTS.POST_METHOD,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const body = (await response.json().catch(() => ({}))) as any;
+
+  if (!response.ok || !body.success) {
+    throw new Error(
+      body.error?.message || body.message || 'Failed to resend verification email'
+    );
+  }
 }
 
 export function logout(): void {
