@@ -60,12 +60,12 @@ export default function Login() {
   };
 
   return (
-    <div className="flex justify-center px-4 pt-8 pb-12">
+    <div className="flex justify-center px-4 pt-24 pb-12">
         <div className="w-full max-w-md">
           {/* Logo and Header */}
           <div className="text-center mb-8">
             <p className="text-gray-600">
-              {isLogin ? 'Login to access your account' : 'Create your account'}
+              {isLogin ? 'Sign in to DiagnoxixAI' : 'Sign up for DiagnoxixAI'}
             </p>
           </div>
 
@@ -79,7 +79,7 @@ export default function Login() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Login
+            Sign in
           </button>
           <button
             onClick={() => setIsLogin(false)}
@@ -89,7 +89,7 @@ export default function Login() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Sign Up
+            Sign up
           </button>
         </div>
 
@@ -136,7 +136,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
-                {loading ? 'Loging in...' : 'Login'}
+                {loading ? 'Loging in...' : 'Sign in'}
               </button>
             </form>
           ) : (
@@ -202,7 +202,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
               >
-                {loading ? 'Creating account...' : 'Create Account'}
+                {loading ? 'Creating account...' : 'Sign up'}
               </button>
             </form>
           )}
@@ -215,7 +215,7 @@ export default function Login() {
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
               >
-                {isLogin ? 'Sign up here' : 'Login here'}
+                {isLogin ? 'Sign up here' : 'Sign in here'}
               </button>
             </p>
           </div>
