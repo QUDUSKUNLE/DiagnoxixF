@@ -1,3 +1,4 @@
+import type { ManagerNavId } from '@/components/centre-dashboard/types';
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
@@ -10,7 +11,6 @@ import {
   UserCog,
   Users,
 } from 'lucide-react';
-import type { ManagerNavId } from '@/components/centre-dashboard/types';
 
 export type DashboardBasePath = '/admin' | '/centre-dashboard';
 

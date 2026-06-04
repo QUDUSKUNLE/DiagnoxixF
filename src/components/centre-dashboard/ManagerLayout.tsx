@@ -1,11 +1,10 @@
 'use client';
 
 import { getCurrentUser, getPostLoginPath, logout } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Footer from '@/components/Footer';
 import type { DashboardBasePath } from '@/lib/manager-routes';
 import type { User } from '@/types/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import ManagerHeader from './ManagerHeader';
 import ManagerSidebar from './ManagerSidebar';
 
@@ -26,7 +25,7 @@ export default function ManagerLayout({ children, basePath }: ManagerLayoutProps
     }
 
     const onAdminPortal = basePath === '/admin';
-    const isAdmin = currentUser.type === 'ADMIN';
+    const isAdmin = currentUser.type === 'DIAGNOSTIC_CENTRE_OWNER';
     const isCentreManager = currentUser.type === 'DIAGNOSTIC_CENTRE_MANAGER';
 
     if (currentUser.type === 'PATIENT') {
@@ -67,7 +66,6 @@ export default function ManagerLayout({ children, basePath }: ManagerLayoutProps
           onLogout={handleLogout}
         />
         <main className="flex-1 px-6 py-8 lg:px-10">{children}</main>
-        <Footer />
       </div>
     </div>
   );

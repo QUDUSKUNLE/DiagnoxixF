@@ -16,12 +16,6 @@ import {
 export default function DashboardPage() {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-[#1d2939]">Dashboard</h1>
-        <p className="mt-1 text-lg font-medium text-[#4c545f]">
-          Welcome back, Admin
-        </p>
-      </div>
 
       <AlertBanner
         message="3 payout requests awaiting approval"

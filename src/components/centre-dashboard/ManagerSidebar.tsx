@@ -57,7 +57,6 @@ export default function ManagerSidebar({ basePath }: ManagerSidebarProps) {
             collapsed ? 'sr-only' : ''
           }`}
         >
-          Main
         </p>
 
         <nav className="flex flex-1 flex-col gap-1">

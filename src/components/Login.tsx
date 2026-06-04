@@ -1,8 +1,9 @@
 'use client';
 
-import { getCurrentUser, getPostLoginPath, isAuthenticated, login, register } from '@/lib/auth';
+import { getCurrentUser, getPostLoginPath, login, register } from '@/lib/auth';
 import { LoginCredentials, RegisterData } from '@/types/auth';
-import { Lock, Mail, Phone, Stethoscope, User } from 'lucide-react';
+import { Lock, Mail, Phone, User } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -131,6 +132,12 @@ export default function Login() {
                   placeholder="Enter your password"
                 />
               </div>
+              <Link
+  href="/forgot-password"
+  className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+>
+  Forgot password?
+</Link>
               <button
                 type="submit"
                 disabled={loading}

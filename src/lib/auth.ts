@@ -13,46 +13,6 @@ import {
   User,
 } from '@/types/auth';
 
-interface MockUserRecord {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  createdAt: string;
-  type: ApiUserType;
-}
-
-
-const mockUsers: MockUserRecord[] = [
-  {
-    id: 'admin-1',
-    name: 'Admin User',
-    email: 'admin@diagnoxix.com',
-    phone: '+234-800-000-0001',
-    password: 'password123',
-    createdAt: new Date().toISOString(),
-    type: 'ADMIN',
-  },
-  {
-    id: 'user-1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+234-123-456-7890',
-    password: 'password123',
-    createdAt: new Date().toISOString(),
-    type: 'DIAGNOSTIC_CENTRE_MANAGER',
-  },
-  {
-    id: 'user-2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    phone: '+234-098-765-4321',
-    password: 'password123',
-    createdAt: new Date().toISOString(),
-    type: 'DIAGNOSTIC_CENTRE_MANAGER',
-  },
-];
 
 function parseJwtPayload(token: string): Record<string, string> | null {
   try {
@@ -68,7 +28,7 @@ function parseJwtPayload(token: string): Record<string, string> | null {
 export function normalizeApiUserType(raw: string): ApiUserType {
   const value = raw.toUpperCase();
 
-  if (value === 'ADMIN') return 'ADMIN';
+  if (value === 'DIAGNOSTIC_CENTRE_OWNER') return 'DIAGNOSTIC_CENTRE_OWNER';
   if (value === 'PATIENT') return 'PATIENT';
   if (value === 'DIAGNOSTIC_CENTRE_MANAGER') return 'DIAGNOSTIC_CENTRE_MANAGER';
 
@@ -86,14 +46,10 @@ function buildUserFromLogin(
   email: string
 ): User {
   const payload = parseJwtPayload(token);
-  const id = payload?.user_id ?? '';
-
   return {
-    id,
-    email,
+    id: payload?.user_id ?? '',
     name: email.split('@')[0] || 'User',
-    phone: '',
-    createdAt: new Date().toISOString(),
+    email: email,
     type: userType,
   };
 }
@@ -101,7 +57,7 @@ function buildUserFromLogin(
 /** Route after login based on API `user_type`. */
 export function getPostLoginPath(user: Pick<User, 'type'>): string {
   switch (user.type) {
-    case 'ADMIN':
+    case 'DIAGNOSTIC_CENTRE_OWNER':
       return '/admin';
     case 'DIAGNOSTIC_CENTRE_MANAGER':
       return '/centre-dashboard';
@@ -117,7 +73,7 @@ export function isPatientUser(user: Pick<User, 'type'>): boolean {
 }
 
 export function canAccessAdminPortal(user: Pick<User, 'type'>): boolean {
-  return user.type === 'ADMIN';
+  return user.type === 'DIAGNOSTIC_CENTRE_OWNER';
 }
 
 export function canAccessCentreDashboard(user: Pick<User, 'type'>): boolean {
@@ -126,7 +82,7 @@ export function canAccessCentreDashboard(user: Pick<User, 'type'>): boolean {
 
 async function loginWithApi(credentials: LoginCredentials): Promise<User> {
   const response = await fetch(getApiUrl(API_ENDPOINTS.AUTH_LOGIN), {
-    method: 'POST',
+    method: API_ENDPOINTS.POST_METHOD,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
   });
@@ -137,7 +93,7 @@ async function loginWithApi(credentials: LoginCredentials): Promise<User> {
 
   if (!response.ok || !body.success || !body.data?.token) {
     throw new Error(
-      body.message || 'Invalid email or password'
+      body.error?.message || 'Invalid email or password'
     );
   }
 
@@ -159,28 +115,60 @@ export function login(credentials: LoginCredentials): Promise<User> {
 export function register(data: RegisterData): Promise<User> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const existingUser = mockUsers.find((u) => u.email === data.email);
-      if (existingUser) {
+
+      if (data.email) {
         reject(new Error('Email already registered'));
         return;
       }
-
-      const newUser: MockUserRecord = {
-        id: `user-${Date.now()}`,
+      const user: User = {
+        id: '1',
         name: data.name,
-        email: data.email,
-        phone: data.phone,
-        password: data.password,
-        createdAt: new Date().toISOString(),
-        type: 'DIAGNOSTIC_CENTRE_MANAGER',
-      };
-
-      mockUsers.push(newUser);
-      const { password: _password, ...user } = newUser;
-      persistSession(user, `mock-token-${user.id}`);
+        email: data?.email ?? '',
+      }
       resolve(user);
     }, 500);
   });
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const response = await fetch(getApiUrl(API_ENDPOINTS.FORGOT_PASSWORD), {
+    method: API_ENDPOINTS.POST_METHOD,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const body = (await response.json().catch(() => ({}))) as any;
+
+  if (!response.ok || !body.success) {
+    throw new Error(
+      body.error?.message || body.message || 'Failed to send reset link'
+    );
+  }
+}
+
+export async function resetPassword(token: string, password: string): Promise<User> {
+  const response = await fetch(getApiUrl(API_ENDPOINTS.RESET_PASSWORD), {
+    method: API_ENDPOINTS.POST_METHOD,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  });
+
+  const body = (await response.json().catch(() => ({}))) as any;
+
+  if (!response.ok || !body.success) {
+    throw new Error(
+      body.error?.message || body.message || 'Failed to reset password'
+    );
+  }
+
+  if (body.data?.token) {
+    const userType = normalizeApiUserType(body.data.user_type);
+    const user = buildUserFromLogin(body.data.token, userType, body.data.email);
+    persistSession(user, body.data.token);
+    return user;
+  }
+
+  throw new Error('Failed to reset password');
 }
 
 export function logout(): void {
