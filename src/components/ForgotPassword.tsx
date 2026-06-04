@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import BrandLogo from '@/components/BrandLogo';
 
 interface ForgotPasswordProps {
   onSubmit?: (email: string) => Promise<void>;
@@ -34,13 +33,6 @@ export default function ForgotPassword({ onSubmit }: ForgotPasswordProps) {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="border-b border-[#e4e7ec] bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <BrandLogo href="/" className="h-8 w-auto" />
-        </div>
-      </header>
-
       {/* Main Content */}
       <div className="flex justify-center px-4 pt-28 pb-12">
         <div className="w-full max-w-md">

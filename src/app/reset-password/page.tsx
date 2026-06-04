@@ -2,6 +2,7 @@
 
 import ResetPassword from '@/components/ResetPassword';
 import { resetPassword } from '@/lib/auth';
+import Header from '@/components/Header';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -36,14 +37,17 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      }
-    >
-      <ResetPasswordContent />
-    </Suspense>
+    <div className="min-h-screen bg-gray-50">
+      <Header active="login" showNav={false} />
+      <Suspense
+        fallback={
+          <div className="flex justify-center items-center min-h-screen">
+            <div className="text-gray-600">Loading...</div>
+          </div>
+        }
+      >
+        <ResetPasswordContent />
+      </Suspense>
+    </div>
   );
 }

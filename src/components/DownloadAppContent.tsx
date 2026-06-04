@@ -37,10 +37,11 @@ export default function DownloadAppContent({
     process.env.NEXT_PUBLIC_APP_STORE_URL || 'https://apps.apple.com';
 
   return (
-    <div className="min-h-screen bg-[#fafbff] flex flex-col">
-      <header className="border-b border-[#e4e7ec] bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <BrandLogo href="/" className="h-8 w-auto" />
+    <div className='bg-white'>
+      <header className="border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+          <BrandLogo href="/" />
           {onLogout ? (
             <button
               type="button"
@@ -52,11 +53,12 @@ export default function DownloadAppContent({
           ) : (
             <Link
               href="/login"
-              className="rounded-xl bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1859c4]"
+              className="text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50"
             >
               Log in
             </Link>
           )}
+          </div>
         </div>
       </header>
 
