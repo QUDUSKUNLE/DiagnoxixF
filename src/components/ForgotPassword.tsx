@@ -36,8 +36,8 @@ export default function ForgotPassword({ onSubmit }: ForgotPasswordProps) {
       {/* Main Content */}
       <div className="flex justify-center px-4 pt-28 pb-12">
         <div className="w-full max-w-md">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
+          <div className="mb-8 text-center">
+            <h1 className=" text-gray-600 font-bold">Forgot Password?</h1>
           </div>
 
           {/* Form Container */}

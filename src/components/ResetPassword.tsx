@@ -50,11 +50,8 @@ export default function ResetPassword({ token, email, onSubmit }: ResetPasswordP
       <div className="flex justify-center px-4 pt-16 pb-12">
         <div className="w-full max-w-md">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h1>
-            <p className="text-gray-600">
-              Enter a new password for your account.
-            </p>
+          <div className="mb-8 text-center">
+            <h1 className="text-gray-600 mb-2 font-bold">Reset Password</h1>
           </div>
 
           {/* Form Container */}
