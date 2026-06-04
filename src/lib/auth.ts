@@ -11,6 +11,7 @@ import {
   LoginCredentials,
   RegisterData,
   User,
+  ResetPasswordRequest,
 } from '@/types/auth';
 
 
@@ -146,11 +147,15 @@ export async function forgotPassword(email: string): Promise<void> {
   }
 }
 
-export async function resetPassword(token: string, password: string): Promise<User> {
+export async function resetPassword(data: ResetPasswordRequest): Promise<User> {
   const response = await fetch(getApiUrl(API_ENDPOINTS.RESET_PASSWORD), {
     method: API_ENDPOINTS.POST_METHOD,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, password }),
+    body: JSON.stringify({
+      email: data.email,
+      token: data.token,
+      new_password: data.password, 
+      confirm_password: data.confirmPassword }),
   });
 
   const body = (await response.json().catch(() => ({}))) as any;
