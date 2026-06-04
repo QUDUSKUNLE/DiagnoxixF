@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  canAccessAdminPortal,
-  canAccessCentreDashboard,
-  getCurrentUser,
-  getPostLoginPath,
-  logout,
-} from '@/lib/auth';
+import { getCurrentUser, getPostLoginPath, logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Footer from '@/components/Footer';
@@ -33,13 +27,23 @@ export default function ManagerLayout({ children, basePath }: ManagerLayoutProps
 
     const onAdminPortal = basePath === '/admin';
     const isAdmin = currentUser.type === 'ADMIN';
+    const isCentreManager = currentUser.type === 'DIAGNOSTIC_CENTRE_MANAGER';
+
+    if (currentUser.type === 'PATIENT') {
+      router.replace(getPostLoginPath(currentUser));
+      return;
+    }
 
     if (onAdminPortal && !isAdmin) {
-      router.replace('/centre-dashboard');
+      router.replace(getPostLoginPath(currentUser));
       return;
     }
     if (!onAdminPortal && isAdmin) {
       router.replace('/admin');
+      return;
+    }
+    if (!onAdminPortal && !isCentreManager) {
+      router.replace(getPostLoginPath(currentUser));
       return;
     }
 
@@ -55,9 +59,13 @@ export default function ManagerLayout({ children, basePath }: ManagerLayoutProps
 
   return (
     <div className="flex min-h-screen bg-[#fafbff]">
-      <ManagerSidebar basePath={basePath} onLogout={handleLogout} />
+      <ManagerSidebar basePath={basePath} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <ManagerHeader basePath={basePath} userName={user.name || 'Admin User'} />
+        <ManagerHeader
+          basePath={basePath}
+          userName={user.name || user.email || 'User'}
+          onLogout={handleLogout}
+        />
         <main className="flex-1 px-6 py-8 lg:px-10">{children}</main>
         <Footer />
       </div>

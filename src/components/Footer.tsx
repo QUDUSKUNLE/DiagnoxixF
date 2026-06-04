@@ -1,4 +1,5 @@
 // src/components/Footer.tsx
+import AppStoreBadges from '@/components/AppStoreBadges';
 import Link from 'next/link';
 
 export default function Footer() {
@@ -28,16 +29,7 @@ export default function Footer() {
         </div>
         <div>
           <h3 className="font-semibold mb-4">Download</h3>
-          <div className="flex gap-4">
-            {/* Use official Google Play badge */}
-            <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer">
-              <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" className="h-10 w-32 object-contain" />
-            </a>
-            {/* Use official App Store badge */}
-            <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer">
-              <img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg" alt="Download on the App Store" className="h-10 w-32 object-contain" />
-            </a>
-          </div>
+          <AppStoreBadges href="/download-app" />
         </div>
       </div>
       <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">

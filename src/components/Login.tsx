@@ -60,12 +60,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex items-center justify-center min-h-screen p-4">
+    <div className="flex justify-center px-4 pt-8 pb-12">
         <div className="w-full max-w-md">
           {/* Logo and Header */}
           <div className="text-center mb-8">
-            <img src="/images/logo.svg" alt="DiagnoxixAI" className="h-12 w-auto mx-auto mb-4" />
             <p className="text-gray-600">
               {isLogin ? 'Login to access your account' : 'Create your account'}
             </p>
@@ -224,6 +222,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-  </div>
   );
 }

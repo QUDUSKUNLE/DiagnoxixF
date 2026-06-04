@@ -1,8 +1,12 @@
 import ManagerSectionView from '@/components/centre-dashboard/ManagerSectionView';
 import { managerSections } from '@/lib/manager-routes';
 
+const centreDashboardSections = Object.keys(managerSections).filter(
+  (section) => section !== 'centres'
+);
+
 export function generateStaticParams() {
-  return Object.keys(managerSections).map((section) => ({ section }));
+  return centreDashboardSections.map((section) => ({ section }));
 }
 
 export default async function CentreDashboardSectionPage({

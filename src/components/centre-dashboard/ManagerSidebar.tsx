@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft, LogOut } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 import type { ManagerNavItem } from './types';
 import {
@@ -38,10 +38,9 @@ function NavLink({
 
 interface ManagerSidebarProps {
   basePath: DashboardBasePath;
-  onLogout: () => void;
 }
 
-export default function ManagerSidebar({ basePath, onLogout }: ManagerSidebarProps) {
+export default function ManagerSidebar({ basePath }: ManagerSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { mainNav, secondaryNav } = getManagerNavItems(basePath);
@@ -81,15 +80,6 @@ export default function ManagerSidebar({ basePath, onLogout }: ManagerSidebarPro
               active={isManagerNavActive(pathname, basePath, item.href)}
             />
           ))}
-
-          <button
-            type="button"
-            onClick={onLogout}
-            className="mt-1 flex w-full items-center gap-4 rounded-xl px-5 py-3 text-left text-sm font-medium text-[#e5e7eb] transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <LogOut className="h-6 w-6 shrink-0" />
-            {!collapsed && <span>Log out</span>}
-          </button>
         </nav>
 
         <button

@@ -1,11 +1,11 @@
 import { AUTH_TOKEN_KEY } from '@/lib/auth-storage';
 
 // API Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7556/api';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7556/v1';
 
 // API Endpoints
 export const API_ENDPOINTS = {
-  AUTH_LOGIN: '/auth/login',
+  AUTH_LOGIN: '/login',
 
   // Centers
   CENTERS: '/centers',

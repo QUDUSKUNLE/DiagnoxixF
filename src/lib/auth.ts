@@ -23,7 +23,6 @@ interface MockUserRecord {
   type: ApiUserType;
 }
 
-const USE_MOCK_AUTH = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true';
 
 const mockUsers: MockUserRecord[] = [
   {
@@ -107,10 +106,14 @@ export function getPostLoginPath(user: Pick<User, 'type'>): string {
     case 'DIAGNOSTIC_CENTRE_MANAGER':
       return '/centre-dashboard';
     case 'PATIENT':
-      return '/dashboard';
+      return '/download-app';
     default:
-      return '/centre-dashboard';
+      return '/login';
   }
+}
+
+export function isPatientUser(user: Pick<User, 'type'>): boolean {
+  return user.type === 'PATIENT';
 }
 
 export function canAccessAdminPortal(user: Pick<User, 'type'>): boolean {
@@ -149,30 +152,7 @@ async function loginWithApi(credentials: LoginCredentials): Promise<User> {
   return user;
 }
 
-function loginWithMock(credentials: LoginCredentials): Promise<User> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const record = mockUsers.find(
-        (u) =>
-          u.email === credentials.email && u.password === credentials.password
-      );
-
-      if (!record) {
-        reject(new Error('Invalid email or password'));
-        return;
-      }
-
-      const { password: _password, ...user } = record;
-      persistSession(user, `mock-token-${user.id}`);
-      resolve(user);
-    }, 500);
-  });
-}
-
 export function login(credentials: LoginCredentials): Promise<User> {
-  if (USE_MOCK_AUTH) {
-    return loginWithMock(credentials);
-  }
   return loginWithApi(credentials);
 }
 

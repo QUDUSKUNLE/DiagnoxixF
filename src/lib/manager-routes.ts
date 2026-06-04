@@ -41,6 +41,11 @@ export function getManagerHref(basePath: DashboardBasePath, segment: string): st
 }
 
 export function getManagerNavItems(basePath: DashboardBasePath) {
+  const navConfig =
+    basePath === '/centre-dashboard'
+      ? mainNavConfig.filter((item) => item.id !== 'centres')
+      : mainNavConfig;
+
   const toItems = (config: ManagerNavConfig[]) =>
     config.map((item) => ({
       id: item.id,
@@ -50,7 +55,7 @@ export function getManagerNavItems(basePath: DashboardBasePath) {
     }));
 
   return {
-    mainNav: toItems(mainNavConfig),
+    mainNav: toItems(navConfig),
     secondaryNav: toItems(secondaryNavConfig),
   };
 }

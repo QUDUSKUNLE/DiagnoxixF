@@ -16,10 +16,10 @@ export default function HeroSection() {
           A trusted marketplace connecting patients with diagnostic centres fast, transparent, and simple.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-          <Link href="/dashboard" className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 text-lg font-medium">
+          <Link href="/download-app" className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 text-lg font-medium">
             Get the App
           </Link>
-          <Link href="/join" className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg hover:bg-blue-50 text-lg font-medium">
+          <Link href="/login" className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg hover:bg-blue-50 text-lg font-medium">
             Join as a Diagnostic Centre
           </Link>
         </div>
