@@ -1,3 +1,4 @@
+import CentresPage from '@/components/centre-dashboard/CentresPage';
 import ManagerSectionPlaceholder from '@/components/centre-dashboard/ManagerSectionPlaceholder';
 import type { DashboardBasePath } from '@/lib/manager-routes';
 import { managerSections } from '@/lib/manager-routes';
@@ -13,6 +14,11 @@ export default function ManagerSectionView({ section, basePath }: ManagerSection
 
   if (!config) {
     notFound();
+  }
+
+  // Render dedicated pages for specific sections
+  if (section === 'centres') {
+    return <CentresPage />;
   }
 
   return (

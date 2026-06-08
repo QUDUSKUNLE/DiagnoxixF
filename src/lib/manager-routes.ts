@@ -37,7 +37,8 @@ const secondaryNavConfig: ManagerNavConfig[] = [
 ];
 
 export function getManagerHref(basePath: DashboardBasePath, segment: string): string {
-  return segment ? `${basePath}/${segment}` : basePath;
+  const result = segment ? `${basePath}/${segment}` : basePath;
+  return result;
 }
 
 export function getManagerNavItems(basePath: DashboardBasePath) {
