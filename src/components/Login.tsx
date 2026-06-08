@@ -5,7 +5,7 @@ import { ApiUserType, LoginCredentials, RegisterData } from '@/types/auth';
 import { Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Login() {
   const router = useRouter();
@@ -27,6 +27,8 @@ export default function Login() {
     confirm_password: '',
     user_type: 'PATIENT',
   });
+
+  const errorTimeoutRef = useRef<number | null>(null);
 
   function formatError(err: unknown): string {
     if (!err) return 'An unexpected error occurred';
@@ -92,6 +94,46 @@ export default function Login() {
       </div>
     );
   }
+
+  // Clear error automatically after a short delay
+  useEffect(() => {
+    if (!error) return;
+    if (errorTimeoutRef.current) {
+      window.clearTimeout(errorTimeoutRef.current);
+    }
+    errorTimeoutRef.current = window.setTimeout(() => {
+      setError(null);
+      errorTimeoutRef.current = null;
+    }, 5000);
+
+    return () => {
+      if (errorTimeoutRef.current) {
+        window.clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
+      }
+    };
+  }, [error]);
+
+  // Clear messages when switching between Login/Register tabs
+  useEffect(() => {
+    if (error) setError(null);
+    if (success) setSuccess(null);
+    if (errorTimeoutRef.current) {
+      window.clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
+  }, [isLogin]);
+
+  // Clear error immediately when user edits any form inputs
+  useEffect(() => {
+    if (error) {
+      setError(null);
+      if (errorTimeoutRef.current) {
+        window.clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
+      }
+    }
+  }, [loginForm, registerForm]);
 
   useEffect(() => {
     const user = getCurrentUser();
