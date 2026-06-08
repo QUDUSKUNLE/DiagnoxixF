@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   CENTERS: '/centers',
   CENTERS_SEARCH: '/centers/search',
   CENTER_BY_ID: (id: string) => `/centers/${id}`,
+  DIAGNOSTIC_CENTRES_OWNER: '/diagnostic_centres/owner',
   
   // Tests
   TEST_TYPES: '/tests/types',

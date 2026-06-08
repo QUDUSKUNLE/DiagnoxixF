@@ -1,5 +1,5 @@
-export const AUTH_TOKEN_KEY = 'diagnoxix_token';
-export const AUTH_USER_KEY = 'diagnoxix_user';
+export const AUTH_TOKEN_KEY = 'auth_token';
+export const AUTH_USER_KEY = 'auth_user';
 
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
