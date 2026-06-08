@@ -25,7 +25,7 @@ export default function ForgotPassword({ onSubmit }: ForgotPasswordProps) {
       setSuccess(true);
       setEmail('');
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset link');
+      setError(err.message ?? 'Failed to send reset link');
     } finally {
       setLoading(false);
     }

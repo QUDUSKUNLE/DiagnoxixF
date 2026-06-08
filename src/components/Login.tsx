@@ -1,8 +1,8 @@
 'use client';
 
 import { getCurrentUser, getPostLoginPath, login, register } from '@/lib/auth';
-import { LoginCredentials, RegisterData } from '@/types/auth';
-import { Lock, Mail, Phone, User } from 'lucide-react';
+import { ApiUserType, LoginCredentials, RegisterData } from '@/types/auth';
+import { Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -11,17 +11,87 @@ export default function Login() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
   const [loginForm, setLoginForm] = useState<LoginCredentials>({
     email: '',
     password: '',
   });
+
   const [registerForm, setRegisterForm] = useState<RegisterData>({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
-    phone: '',
     password: '',
+    confirm_password: '',
+    user_type: 'PATIENT',
   });
+
+  function formatError(err: unknown): string {
+    if (!err) return 'An unexpected error occurred';
+    if (typeof err === 'string') return err;
+    if (err instanceof Error) return err.message || 'An unexpected error occurred';
+    try {
+      const e = err as any;
+      if (e?.message) return String(e.message);
+      if (e?.error?.message) return String(e.error.message);
+      return JSON.stringify(e);
+    } catch {
+      return 'An unexpected error occurred';
+    }
+  }
+
+  function renderError(err: string | null) {
+    if (!err) return null;
+    // Try parse JSON error payloads returned from the API
+    try {
+      const parsed = JSON.parse(err);
+      // Array of messages
+      if (Array.isArray(parsed)) {
+        return (
+          <div className="mb-6 p-4 bg-red-600 text-white rounded-lg dark:bg-red-700">
+            <ul className="list-disc pl-5 text-sm text-white">
+              {parsed.map((m, i) => (
+                <li key={i}>{String(m)}</li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+
+      // Object with message or error fields
+      if (typeof parsed === 'object' && parsed !== null) {
+        const primary = parsed.message ?? parsed.error?.message ?? null;
+        const details = parsed.errors ?? parsed.error?.errors ?? null;
+
+        return (
+          <div className="mb-6 p-4 bg-red-600 text-white rounded-lg dark:bg-red-700">
+            {primary && <p className="text-sm text-white">{String(primary)}</p>}
+            {details && Array.isArray(details) && (
+              <ul className="list-disc pl-5 text-sm text-white mt-2">
+                {details.map((d: any, i: number) => (
+                  <li key={i}>{String(d)}</li>
+                ))}
+              </ul>
+            )}
+            {!primary && !details && (
+              <pre className="text-xs text-white whitespace-pre-wrap">{JSON.stringify(parsed, null, 2)}</pre>
+            )}
+          </div>
+        );
+      }
+    } catch {
+      // not JSON
+    }
+
+    // Fallback: plain string
+    return (
+      <div className="mb-6 p-4 bg-red-600 text-white rounded-lg dark:bg-red-700">
+        <p className="text-sm text-white">{err}</p>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -39,7 +109,7 @@ export default function Login() {
       const user = await login(loginForm);
       router.push(getPostLoginPath(user));
     } catch (err: any) {
-      setError(err.message);
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }
@@ -48,13 +118,14 @@ export default function Login() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
-      const user = await register(registerForm);
-      router.push(getPostLoginPath(user));
+      await register(registerForm);
+      setSuccess('Registration successful — please check your email to confirm your registration.');
     } catch (err: any) {
-      setError(err.message);
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }
@@ -96,9 +167,11 @@ export default function Login() {
 
         {/* Form Container */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+          {renderError(error)}
+
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">{success}</p>
             </div>
           )}
 
@@ -151,17 +224,33 @@ export default function Login() {
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <User className="w-4 h-4 text-blue-500" />
-                  Full Name
+                  First name
                 </label>
                 <input
                   type="text"
-                  value={registerForm.name}
-                  onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+                  value={registerForm.first_name}
+                  onChange={(e) => setRegisterForm({ ...registerForm, first_name: e.target.value })}
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 transition-colors"
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name"
                 />
               </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <User className="w-4 h-4 text-blue-500" />
+                  Last name
+                </label>
+                <input
+                  type="text"
+                  value={registerForm.last_name}
+                  onChange={(e) => setRegisterForm({ ...registerForm, last_name: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 transition-colors"
+                  placeholder="Enter your last name"
+                />
+              </div>
+
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Mail className="w-4 h-4 text-blue-500" />
@@ -176,20 +265,22 @@ export default function Login() {
                   placeholder="Enter your email"
                 />
               </div>
+
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Phone className="w-4 h-4 text-blue-500" />
-                  Phone Number
+                  <User className="w-4 h-4 text-blue-500" />
+                  Account type
                 </label>
-                <input
-                  type="tel"
-                  value={registerForm.phone}
-                  onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
-                  required
+                <select
+                  value={registerForm.user_type}
+                  onChange={(e) => setRegisterForm({ ...registerForm, user_type: e.target.value as ApiUserType })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 transition-colors"
-                  placeholder="Enter your phone number"
-                />
+                >
+                  <option value="PATIENT">Patient</option>
+                  <option value="DIAGNOSTIC_CENTRE_OWNER">Diagnostic Centre Owner</option>
+                </select>
               </div>
+
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Lock className="w-4 h-4 text-blue-500" />
@@ -204,6 +295,22 @@ export default function Login() {
                   placeholder="Create a password"
                 />
               </div>
+
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Lock className="w-4 h-4 text-blue-500" />
+                  Confirm password
+                </label>
+                <input
+                  type="password"
+                  value={registerForm.confirm_password}
+                  onChange={(e) => setRegisterForm({ ...registerForm, confirm_password: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 transition-colors"
+                  placeholder="Confirm your password"
+                />
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}

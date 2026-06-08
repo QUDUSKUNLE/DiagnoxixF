@@ -32,9 +32,9 @@ export default function DownloadAppContent({
   onLogout,
 }: DownloadAppContentProps) {
   const playStoreUrl =
-    process.env.NEXT_PUBLIC_PLAY_STORE_URL || 'https://play.google.com/store';
+    process.env.NEXT_PUBLIC_PLAY_STORE_URL ?? 'https://play.google.com/store';
   const appStoreUrl =
-    process.env.NEXT_PUBLIC_APP_STORE_URL || 'https://apps.apple.com';
+    process.env.NEXT_PUBLIC_APP_STORE_URL ?? 'https://apps.apple.com';
 
   return (
     <div className='bg-white'>

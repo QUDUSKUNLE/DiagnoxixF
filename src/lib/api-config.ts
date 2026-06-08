@@ -6,6 +6,8 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 // API Endpoints
 export const API_ENDPOINTS = {
   AUTH_LOGIN: '/login',
+  AUTH_REGISTER: '/register',
+
   FORGOT_PASSWORD: '/request_password_reset',
   RESET_PASSWORD: '/reset_password',
   VERIFY_EMAIL: '/verify_email',

@@ -13,15 +13,13 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterData {
-  name: string;
-  email?: string;
-  phone: string;
-  password: string;
-}
-
-export interface ForgotPasswordRequest {
+ export interface RegisterData {
+  first_name: string;
+  last_name: string;
   email: string;
+  password: string;
+  confirm_password: string;
+  user_type: ApiUserType;
 }
 
 export interface ResetPasswordRequest {
@@ -41,6 +39,14 @@ export interface LoginResponseData {
   user_type: ApiUserType;
 }
 
+export interface RegisterResponseData {
+  created_at: string;
+  email: string;
+  id: string;
+  nin: string;
+  updated_at: string;
+}
+
 export interface ApiEnvelope<T> {
   data: T;
   status: number;
@@ -53,3 +59,5 @@ export interface ApiEnvelope<T> {
 }
 
 export type LoginApiResponse = ApiEnvelope<LoginResponseData>;
+
+export type RegisterApiResponse = ApiEnvelope<RegisterResponseData>

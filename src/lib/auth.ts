@@ -9,6 +9,7 @@ import {
   ApiUserType,
   LoginApiResponse,
   LoginCredentials,
+  RegisterApiResponse,
   RegisterData,
   ResetPasswordRequest,
   User,
@@ -109,26 +110,30 @@ async function loginWithApi(credentials: LoginCredentials): Promise<User> {
   return user;
 }
 
+async function registerWithApi(params: RegisterData): Promise<RegisterApiResponse> {
+  const response = await fetch(getApiUrl(API_ENDPOINTS.AUTH_REGISTER), {
+    method: API_ENDPOINTS.POST_METHOD,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+  const body = (await response.json().catch(() => ({}))) as RegisterApiResponse & {
+    message?: string
+  }
+
+  if (!response.ok || !body.success || !body.data?.id) {
+    throw new Error(body.error?.message ?? 'Error registering a new user');
+  }
+
+  return body
+ }
+
 export function login(credentials: LoginCredentials): Promise<User> {
   return loginWithApi(credentials);
 }
 
-export function register(data: RegisterData): Promise<User> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-
-      if (data.email) {
-        reject(new Error('Email already registered'));
-        return;
-      }
-      const user: User = {
-        id: '1',
-        name: data.name,
-        email: data?.email ?? '',
-      }
-      resolve(user);
-    }, 500);
-  });
+export function register(data: RegisterData): Promise<RegisterApiResponse> {
+  return registerWithApi(data)
 }
 
 export async function forgotPassword(email: string): Promise<void> {
