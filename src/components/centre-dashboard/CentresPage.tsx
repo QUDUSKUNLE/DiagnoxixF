@@ -1,6 +1,7 @@
 "use client";
 
-import { API_ENDPOINTS, apiCall } from '@/lib/api-config';
+import { API_ENDPOINTS, apiCall, getApiUrl } from '@/lib/api-config';
+import { getAuthToken } from '@/lib/auth';
 import { Building2, Download, Mail, MoreHorizontal, Phone, Search, Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -153,7 +154,10 @@ export default function CentresPage() {
         } else if (it.address_text) address = it.address_text;
 
         const contactEmail = it.contact?.email || it.email || '';
-        const phone = (it.contact?.phone && it.contact.phone[0]) || it.phone || '';
+        let phone = '';
+        if (Array.isArray(it.contact?.phone)) phone = it.contact.phone[0] || '';
+        else if (typeof it.contact?.phone === 'string') phone = it.contact.phone;
+        else phone = it.phone || '';
 
         return {
           id: String(it.id || it._id || it.diagnostic_centre_id || name),
@@ -242,11 +246,6 @@ export default function CentresPage() {
               <option value="4">4.0+</option>
               <option value="4.5">4.5+</option>
             </select>
-
-            <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-[#e4e7ec] px-4 py-2.5 text-sm font-medium text-[#1d2939] transition-colors hover:bg-[#f9fafb]">
-              <Download className="h-4 w-4" />
-              Export
-            </button>
           </div>
         </div>
 
@@ -265,6 +264,18 @@ export default function CentresPage() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-16 text-center text-[#667085]">Loading centres…</td>
+                </tr>
+              ) : lastError ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center text-red-700">
+                    <div className="mx-auto max-w-md">
+                      <p className="mb-3 text-lg font-medium">Failed to load centres</p>
+                      <p className="mb-4 text-sm text-red-800">{lastError}</p>
+                      <div className="flex justify-center">
+                        <button type="button" onClick={() => { setLastError(null); loadCentres(); }} className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Retry</button>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
@@ -317,9 +328,10 @@ export default function CentresPage() {
               </div>
 
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  const id = Date.now().toString();
+                  setLoading(true);
+                  setLastError(null);
 
                   const payload = {
                     address: {
@@ -328,31 +340,67 @@ export default function CentresPage() {
                       state: newCentre.address.state,
                       country: newCentre.address.country,
                     },
-                    admin_id: newCentre.admin_id,
-                    test_prices: newCentre.test_prices.map((t: any) => ({ price: Number(t.price || 0), test_type: t.test_type })),
+                    admin_id: newCentre.admin_id === '' ? null : newCentre.admin_id,
+                    available_tests: newCentre.test_prices.map((t: any) => ({ price: Number(t.price || 0), test_type: t.test_type })),
                     contact: { email: newCentre.contact.email, phone: newCentre.contact.phone.filter(Boolean) },
                     diagnostic_centre_name: newCentre.diagnostic_centre_name,
                     doctors: newCentre.doctors.filter(Boolean),
                     latitude: newCentre.latitude ? Number(newCentre.latitude) : undefined,
                     longitude: newCentre.longitude ? Number(newCentre.longitude) : undefined,
                   };
+                  try {
+                    const token = getAuthToken() || '';
+                    const res = await fetch(getApiUrl(API_ENDPOINTS.CREATE_DIAGNOSTIC_CENTRE), {
+                      method: 'POST',
+                      headers: {
+                        accept: 'application/json',
+                        'content-type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                      },
+                      body: JSON.stringify(payload),
+                    });
 
-                  const centre = {
-                    id,
-                    // keep flat fields for table display
-                    name: payload.diagnostic_centre_name,
-                    address: `${payload.address.street}, ${payload.address.city}, ${payload.address.state}, ${payload.address.country}`,
-                    phone: payload.contact.phone[0] ?? '',
-                    email: payload.contact.email,
-                    rating: undefined,
-                    archived: false,
-                    // keep raw payload for later persistence
-                    _payload: payload,
-                  };
+                    if (!res.ok) {
+                      const txt = await res.text();
+                      throw new Error(txt || res.statusText || `HTTP ${res.status}`);
+                    }
 
-                  setCentres((prev) => [centre, ...prev]);
-                  setNewCentre({ diagnostic_centre_name: '', admin_id: '', address: { street: '', city: '', state: '', country: '' }, contact: { email: '', phone: [''] }, test_prices: [{ price: '', test_type: 'BLOOD_TEST' }], doctors: [''], latitude: '', longitude: '' });
-                  setIsAdding(false);
+                    const created = await res.json();
+                    const it = created?.data || created || {};
+                    const id = String(it.id || it._id || it.diagnostic_centre_id || Date.now());
+                    const name = it.diagnostic_centre_name || it.name || payload.diagnostic_centre_name;
+                    let address = '';
+                    if (it.address) {
+                      if (typeof it.address === 'string') address = it.address;
+                      else address = [it.address.street, it.address.city, it.address.state, it.address.country].filter(Boolean).join(', ');
+                    } else if (it.address_text) address = it.address_text;
+
+                    let phone = '';
+                    if (Array.isArray(it.contact?.phone)) phone = it.contact.phone[0] || '';
+                    else if (typeof it.contact?.phone === 'string') phone = it.contact.phone;
+                    else phone = (payload.contact.phone && payload.contact.phone[0]) || '';
+
+                    const centre = {
+                      id,
+                      name,
+                      address,
+                      phone,
+                      email: it.contact?.email || payload.contact.email || '',
+                      rating: typeof it.rating === 'number' ? it.rating : undefined,
+                      archived: it.archived ?? false,
+                      _payload: it.id ? it : payload,
+                    };
+
+                    setCentres((prev) => [centre, ...prev]);
+                    setNewCentre({ diagnostic_centre_name: '', admin_id: '', address: { street: '', city: '', state: '', country: '' }, contact: { email: '', phone: [''] }, test_prices: [{ price: '', test_type: 'BLOOD_TEST' }], doctors: [''], latitude: '', longitude: '' });
+                    setIsAdding(false);
+                  } catch (err: any) {
+                    // eslint-disable-next-line no-console
+                    console.error('Error creating centre', err);
+                    setLastError(err?.message || String(err));
+                  } finally {
+                    setLoading(false);
+                  }
                 }}
                 className="mt-4 grid gap-3"
               >

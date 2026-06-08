@@ -5,6 +5,9 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // API Endpoints
 export const API_ENDPOINTS = {
+  GET_METHOD:  'GET',
+  POST_METHOD: 'POST',
+
   AUTH_LOGIN: '/login',
   AUTH_REGISTER: '/register',
 
@@ -13,14 +16,12 @@ export const API_ENDPOINTS = {
   VERIFY_EMAIL: '/verify_email',
   RESEND_VERIFICATION: '/resend_verification',
 
-  POST_METHOD: 'POST',
-  GET_METHOD:  'GET',
-
   // Centers
   CENTERS: '/centers',
   CENTERS_SEARCH: '/centers/search',
   CENTER_BY_ID: (id: string) => `/centers/${id}`,
   DIAGNOSTIC_CENTRES_OWNER: '/diagnostic_centres/owner',
+  CREATE_DIAGNOSTIC_CENTRE: '/diagnostic_centres',
   
   // Tests
   TEST_TYPES: '/tests/types',
