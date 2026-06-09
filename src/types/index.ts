@@ -1,15 +1,39 @@
 export type PractitionerGender = 'male' | 'female' | 'any';
 
-export interface DiagnosticCenter {
-  id: string;
-  name: string;
-  address: string;
+type Address = {
+  street: string;
+  city: string;
+  state: string;
+  country: string
+}
+
+type Contact = {
+  email: string;
+  phone: string[];
+}
+
+export type Test_Price = {
+  test_type: string;
+  price: number;
+}
+
+export interface DiagnosticCentre {
+  address: Address;
+  contact: Contact;
+  doctors: string[]
+  test_prices: Test_Price[]
   latitude: number;
   longitude: number;
-  phone: string;
-  email: string;
-  rating: number;
-  imageUrl?: string;
+  created_at: string;
+  updated_at: string;
+  diagnostic_centre_id: string;
+  diagnostic_centre_name: string;
+  admin_id?: string;
+  availability?: string;
+  archived?: string;
+  // phone: string;
+  // email: string;
+  // rating: number;
 }
 
 export interface TestType {
@@ -64,7 +88,7 @@ export interface SearchFilters {
   maxDistance?: number; // in km
 }
 
-export interface CenterWithDistance extends DiagnosticCenter {
+export interface CenterWithDistance extends DiagnosticCentre {
   distance: number; // in km
   availableTests: TestOfferingWithDetails[];
 }
@@ -72,7 +96,7 @@ export interface CenterWithDistance extends DiagnosticCenter {
 export interface TestOfferingWithDetails extends TestOffering {
   testType: TestType;
   practitioner: Practitioner;
-  center: DiagnosticCenter;
+  center: DiagnosticCentre;
 }
 
 export interface PaymentIntent {

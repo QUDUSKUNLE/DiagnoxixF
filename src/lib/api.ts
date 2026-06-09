@@ -1,7 +1,7 @@
 import {
   Booking,
   CenterWithDistance,
-  DiagnosticCenter,
+  DiagnosticCentre,
   PaymentIntent,
   PractitionerGender,
   SearchFilters,
