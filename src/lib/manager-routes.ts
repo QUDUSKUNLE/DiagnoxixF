@@ -1,15 +1,15 @@
 import type { ManagerNavId } from '@/components/centre-dashboard/types';
 import type { LucideIcon } from 'lucide-react';
 import {
-  Building2,
-  Calendar,
-  CreditCard,
-  Headphones,
-  LayoutDashboard,
-  Settings,
-  ShieldCheck,
-  UserCog,
-  Users,
+    Building2,
+    Calendar,
+    CreditCard,
+    Headphones,
+    LayoutDashboard,
+    Settings,
+    ShieldCheck,
+    UserCog,
+    Users,
 } from 'lucide-react';
 
 export type DashboardBasePath = '/admin' | '/centre-dashboard';
@@ -45,7 +45,14 @@ export function getManagerNavItems(basePath: DashboardBasePath) {
   const navConfig =
     basePath === '/centre-dashboard'
       ? mainNavConfig.filter((item) => item.id !== 'centres')
-      : mainNavConfig;
+      : // admin portal: remove patients and show "Managers" instead of "Bookings"
+        mainNavConfig
+          .filter((item) => item.id !== 'patients')
+          .map((item) =>
+            item.id === 'bookings'
+              ? { ...item, label: 'Managers', segment: 'managers', icon: Users }
+              : item,
+          );
 
   const toItems = (config: ManagerNavConfig[]) =>
     config.map((item) => ({
@@ -81,6 +88,10 @@ export const managerSections: Record<string, { title: string; description: strin
   verifications: {
     title: 'Verifications',
     description: 'Approve centre credentials and pending verification requests.',
+  },
+  managers: {
+    title: 'Managers',
+    description: 'View and manage centre managers and their access.',
   },
   roles: {
     title: 'Roles & Permissions',
