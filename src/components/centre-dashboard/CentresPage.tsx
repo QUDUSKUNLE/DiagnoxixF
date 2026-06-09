@@ -2,7 +2,7 @@
 
 import { API_ENDPOINTS, apiCall, getApiUrl } from '@/lib/api-config';
 import { getAuthToken } from '@/lib/auth';
-import { Building2, Download, Mail, MoreHorizontal, Phone, Search, Star } from 'lucide-react';
+import { Building2, Mail, MoreHorizontal, Phone, Search, Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 function StatMini({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
@@ -173,7 +173,7 @@ export default function CentresPage() {
 
       setCentres(mapped);
     } catch (err: any) {
-      setLastError(err?.message || String(err));
+      setLastError(err?.message);
     } finally {
       setLoading(false);
     }
@@ -395,8 +395,6 @@ export default function CentresPage() {
                     setNewCentre({ diagnostic_centre_name: '', admin_id: '', address: { street: '', city: '', state: '', country: '' }, contact: { email: '', phone: [''] }, test_prices: [{ price: '', test_type: 'BLOOD_TEST' }], doctors: [''], latitude: '', longitude: '' });
                     setIsAdding(false);
                   } catch (err: any) {
-                    // eslint-disable-next-line no-console
-                    console.error('Error creating centre', err);
                     setLastError(err?.message || String(err));
                   } finally {
                     setLoading(false);
