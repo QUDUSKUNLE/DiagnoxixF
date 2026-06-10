@@ -349,9 +349,9 @@ export default function CentresPage() {
                     longitude: newCentre.longitude ? Number(newCentre.longitude) : undefined,
                   };
                   try {
-                    const token = getAuthToken() || '';
+                    const token = getAuthToken();
                     const res = await fetch(getApiUrl(API_ENDPOINTS.CREATE_DIAGNOSTIC_CENTRE), {
-                      method: 'POST',
+                      method: API_ENDPOINTS.POST_METHOD,
                       headers: {
                         accept: 'application/json',
                         'content-type': 'application/json',
