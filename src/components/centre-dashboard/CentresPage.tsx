@@ -186,9 +186,8 @@ export default function CentresPage() {
 
   const centreStats = useMemo(() => {
     const active = centres.filter((c) => !c.archived);
-    const total = active.length;
     const avg = (active.reduce((s, c) => s + (c.rating ?? 0), 0) / Math.max(1, total)) || 0;
-    return { total, avg };
+    return { avg };
   }, [centres]);
 
   const filtered = useMemo(() => {
@@ -217,7 +216,6 @@ export default function CentresPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatMini icon={Building2} label="Total Centres" value={total.toString()} />
-        <StatMini icon={Building2} label="Avg. Rating" value={centreStats.avg.toFixed(1)} />
         <div />
         <div />
       </div>
