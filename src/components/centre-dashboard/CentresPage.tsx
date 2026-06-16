@@ -2,6 +2,7 @@
 
 import { API_ENDPOINTS, apiCall, getApiUrl } from '@/lib/api-config';
 import { getAuthToken } from '@/lib/auth';
+import { CentreResult, DiagnosticCentre } from '@/types';
 import { Building2, Mail, MoreHorizontal, Phone, Search, Star } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -141,31 +142,21 @@ export default function CentresPage() {
     setLoading(true);
     try {
 
-      const json = await apiCall<any>(API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER + '?page=1&per_page=10');
+      const json = await apiCall<CentreResult>(API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER + '?page=1&per_page=10');
       // Debug log raw response
-      const items = Array.isArray(json) ? json : (json.data.result || []);
+      const items = Array.isArray(json.data.result) ? json.data.result : [];
 
-      const mapped = items.map((it: any) => {
+      const mapped = items.map((it: DiagnosticCentre) => {
         const payload = it;
-        const name = it.diagnostic_centre_name || it.name || '';
-        let address = '';
-        if (it.address) {
-          if (typeof it.address === 'string') address = it.address;
-          else address = [it.address.street, it.address.city, it.address.state, it.address.country].filter(Boolean).join(', ');
-        } else if (it.address_text) address = it.address_text;
-
-        const contactEmail = it.contact?.email || it.email || '';
-        let phone = '';
-        if (Array.isArray(it.contact?.phone)) phone = it.contact.phone[0] || '';
-        else if (typeof it.contact?.phone === 'string') phone = it.contact.phone;
-        else phone = it.phone || '';
-
+        const name = it.diagnostic_centre_name ?? '';
+        let address = [it.address.street, it.address.city, it.address.state, it.address.country].filter(Boolean).join(', ');
+        let phone = it.contact.phone[0] ?? '';
         return {
-          id: String(it.id || it._id || it.diagnostic_centre_id || name),
+          id: it.diagnostic_centre_id,
           name,
           address,
           phone,
-          email: contactEmail,
+          email: it.contact.email,
           rating: typeof it.rating === 'number' ? it.rating : undefined,
           archived: it.archived ?? false,
           _payload: payload,

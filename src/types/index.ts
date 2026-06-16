@@ -34,6 +34,22 @@ export interface DiagnosticCentre {
   rating?: number;
 }
 
+type Pagination = {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface CentreResult {
+  data: {
+    result: DiagnosticCentre[];
+    pagination: Pagination
+  };
+  status: number;
+  success: boolean;
+}
+
 export interface TestType {
   id: string;
   name: string;
