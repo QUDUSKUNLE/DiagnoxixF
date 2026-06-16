@@ -75,6 +75,7 @@ export default function CentresPage() {
   const [selectedCentre, setSelectedCentre] = useState<any | null>(null);
   const [centres, setCentres] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [total, setTotal] = useState<number>(0)
   const [newCentre, setNewCentre] = useState<any>({
     diagnostic_centre_name: '',
     admin_id: '',
@@ -142,7 +143,7 @@ export default function CentresPage() {
 
       const json = await apiCall<any>(API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER + '?page=1&per_page=10');
       // Debug log raw response
-      const items = Array.isArray(json) ? json : (json.data || json.items || json.centres || []);
+      const items = Array.isArray(json) ? json : (json.data.result || []);
 
       const mapped = items.map((it: any) => {
         const payload = it;
@@ -171,6 +172,7 @@ export default function CentresPage() {
         };
       });
 
+      setTotal(json.data.pagination.total)
       setCentres(mapped);
     } catch (err: any) {
       setLastError(err?.message);
@@ -214,7 +216,7 @@ export default function CentresPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatMini icon={Building2} label="Total Centres" value={centreStats.total.toString()} />
+        <StatMini icon={Building2} label="Total Centres" value={total.toString()} />
         <StatMini icon={Building2} label="Avg. Rating" value={centreStats.avg.toFixed(1)} />
         <div />
         <div />
@@ -657,7 +659,7 @@ export default function CentresPage() {
 
         <div className="flex flex-col gap-4 border-t border-[#e4e7ec] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[#667085]">
-            Showing <span className="font-semibold text-[#1d2939]">{filtered.length}</span> of <span className="font-semibold text-[#1d2939]">{centres.length}</span> centres
+            Showing <span className="font-semibold text-[#1d2939]">{filtered.length}</span> of <span className="font-semibold text-[#1d2939]">{total}</span> centres
           </p>
           <div className="flex items-center gap-2">
             <button type="button" disabled className="rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] disabled:opacity-50">Previous</button>

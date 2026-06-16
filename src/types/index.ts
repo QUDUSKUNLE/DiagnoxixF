@@ -18,6 +18,8 @@ export type Test_Price = {
 }
 
 export interface DiagnosticCentre {
+  diagnostic_centre_id: string;
+  diagnostic_centre_name: string;
   address: Address;
   contact: Contact;
   doctors: string[]
@@ -26,14 +28,10 @@ export interface DiagnosticCentre {
   longitude: number;
   created_at: string;
   updated_at: string;
-  diagnostic_centre_id: string;
-  diagnostic_centre_name: string;
   admin_id?: string;
   availability?: string;
-  archived?: string;
-  // phone: string;
-  // email: string;
-  // rating: number;
+  archived?: boolean;
+  rating?: number;
 }
 
 export interface TestType {
