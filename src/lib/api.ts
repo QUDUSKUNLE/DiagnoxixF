@@ -29,7 +29,7 @@ export async function searchCenters(
   if (filters.testType) {
     offerings = offerings.filter(o => o.testTypeId === filters.testType);
     centers = centers.filter(c => 
-      offerings.some(o => o.centerId === c.id && o.available)
+      offerings.some(o => o.centerId === c.diagnostic_centre_id && o.available)
     );
   }
   
@@ -39,14 +39,14 @@ export async function searchCenters(
       .map(p => p.id);
     offerings = offerings.filter(o => filteredPractitionerIds.includes(o.practitionerId));
     centers = centers.filter(c => 
-      offerings.some(o => o.centerId === c.id && o.available)
+      offerings.some(o => o.centerId === c.diagnostic_centre_id && o.available)
     );
   }
   
   if (filters.maxCost) {
     offerings = offerings.filter(o => o.cost <= filters.maxCost!);
     centers = centers.filter(c => 
-      offerings.some(o => o.centerId === c.id && o.available)
+      offerings.some(o => o.centerId === c.diagnostic_centre_id && o.available)
     );
   }
   
@@ -54,7 +54,7 @@ export async function searchCenters(
   const centersWithDistance: CenterWithDistance[] = centers.map(center => {
     const distance = calculateDistance(userLat, userLon, center.latitude, center.longitude);
     const centerOfferings = offerings
-      .filter(o => o.centerId === center.id && o.available)
+      .filter(o => o.centerId === center.diagnostic_centre_id && o.available)
       .map(offering => {
         const testType = mockTestTypes.find(t => t.id === offering.testTypeId)!;
         const practitioner = mockPractitioners.find(p => p.id === offering.practitionerId)!;
@@ -95,7 +95,7 @@ export async function getCenterTestOfferings(centerId: string): Promise<TestOffe
   return offerings.map(offering => {
     const testType = mockTestTypes.find(t => t.id === offering.testTypeId)!;
     const practitioner = mockPractitioners.find(p => p.id === offering.practitionerId)!;
-    const center = mockCenters.find(c => c.id === centerId)!;
+    const center = mockCenters.find(c => c.diagnostic_centre_id === centerId)!;
     
     return {
       ...offering,
