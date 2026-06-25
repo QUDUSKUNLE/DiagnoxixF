@@ -91,6 +91,9 @@ export default function CentresPage() {
   const [editDraft, setEditDraft] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const PER_PAGE = 10;
 
   useEffect(() => {
     if (!isAdding) return;
@@ -136,35 +139,38 @@ export default function CentresPage() {
     setEditDraft(payload);
   }, [editingCentre]);
 
-  // fetch centres from backend API on mount
-  // central fetch function so we can call it manually after setting token
-  const loadCentres = async () => {
+  const mapCentreItems = (items: DiagnosticCentre[]) =>
+    items.map((it: DiagnosticCentre) => {
+      const payload = it;
+      const name = it.diagnostic_centre_name ?? '';
+      const address = [it.address.street, it.address.city, it.address.state, it.address.country].filter(Boolean).join(', ');
+      const phone = it.contact.phone[0] ?? '';
+      return {
+        id: it.diagnostic_centre_id,
+        name,
+        address,
+        phone,
+        email: it.contact.email,
+        rating: typeof it.rating === 'number' ? it.rating : undefined,
+        archived: it.archived ?? false,
+        _payload: payload,
+      };
+    });
+
+  const loadCentres = async (pageNum = page) => {
     setLoading(true);
+    setLastError(null);
     try {
-
-      const json = await apiCall<CentreResult>(API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER + '?page=1&per_page=10');
-      // Debug log raw response
+      const json = await apiCall<CentreResult>(
+        `${API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER}?page=${pageNum}&per_page=${PER_PAGE}`
+      );
       const items = Array.isArray(json.data.result) ? json.data.result : [];
+      const pagination = json.data.pagination;
 
-      const mapped = items.map((it: DiagnosticCentre) => {
-        const payload = it;
-        const name = it.diagnostic_centre_name ?? '';
-        let address = [it.address.street, it.address.city, it.address.state, it.address.country].filter(Boolean).join(', ');
-        let phone = it.contact.phone[0] ?? '';
-        return {
-          id: it.diagnostic_centre_id,
-          name,
-          address,
-          phone,
-          email: it.contact.email,
-          rating: typeof it.rating === 'number' ? it.rating : undefined,
-          archived: it.archived ?? false,
-          _payload: payload,
-        };
-      });
-
-      setTotal(json.data.pagination.total)
-      setCentres(mapped);
+      setTotal(pagination.total);
+      setTotalPages(pagination.total_pages);
+      setPage(pageNum);
+      setCentres(mapCentreItems(items));
     } catch (err: any) {
       setLastError(err?.message);
     } finally {
@@ -172,7 +178,7 @@ export default function CentresPage() {
     }
   };
 
-  useEffect(() => { loadCentres(); }, []);
+  useEffect(() => { loadCentres(1); }, []);
   // capture global unhandled promise rejections (debug helper)
 
   const centreStats = useMemo(() => {
@@ -252,7 +258,7 @@ export default function CentresPage() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {loading && centres.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-16 text-center text-[#667085]">Loading centres…</td>
                 </tr>
@@ -648,12 +654,36 @@ export default function CentresPage() {
 
         <div className="flex flex-col gap-4 border-t border-[#e4e7ec] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-[#667085]">
-            Showing <span className="font-semibold text-[#1d2939]">{filtered.length}</span> of <span className="font-semibold text-[#1d2939]">{total}</span> centres
+            Showing{' '}
+            <span className="font-semibold text-[#1d2939]">
+              {total === 0 ? 0 : (page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)}
+            </span>{' '}
+            of <span className="font-semibold text-[#1d2939]">{total}</span> centres
           </p>
           <div className="flex items-center gap-2">
-            <button type="button" disabled className="rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] disabled:opacity-50">Previous</button>
-            <button type="button" className="rounded-lg bg-[#1f6ae1] px-3 py-1.5 text-sm font-medium text-white">1</button>
-            <button type="button" className="rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] hover:bg-[#f9fafb]">Next</button>
+            <button
+              type="button"
+              disabled={page <= 1 || loading}
+              onClick={() => loadCentres(page - 1)}
+              className="cursor-pointer rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-[#1f6ae1] px-3 py-1.5 text-sm font-medium text-white"
+              aria-current="page"
+            >
+              {page}
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages || loading}
+              onClick={() => loadCentres(page + 1)}
+              className="cursor-pointer rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Loading…' : 'Next'}
+            </button>
           </div>
         </div>
       </div>
