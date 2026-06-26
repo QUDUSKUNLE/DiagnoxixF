@@ -1,8 +1,8 @@
 "use client";
 
 import { API_ENDPOINTS, apiCall } from '@/lib/api-config';
-import { getAuthToken } from '@/lib/auth';
-import { Building2, Mail, MoreHorizontal, Phone, Search, Users } from 'lucide-react';
+import { Manager, ManagerResult } from '@/types';
+import { Mail, MoreHorizontal, Phone, Search, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 
@@ -20,7 +20,7 @@ function StatMini({ icon: Icon, label, value }: { icon: any; label: string; valu
   );
 }
 
-function ManagerRow({ manager, onView, onViewCentre }: { manager: any; onView?: (m: any) => void; onViewCentre?: (c: any) => void }) {
+function ManagerRow({ manager, onView, onEdit, onViewCentre }: { manager: any; onView?: (m: any) => void; onEdit?: (m: any) => void; onViewCentre?: (c: any) => void }) {
   return (
     <tr className="border-b border-[#e4e7ec] last:border-0 hover:bg-[#f9fafb]/80">
       <td className="px-6 py-4">
@@ -34,7 +34,7 @@ function ManagerRow({ manager, onView, onViewCentre }: { manager: any; onView?: 
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-[#667085]">{manager.phone}</td>
+      <td className="px-6 py-4 text-[#667085]">{manager.phone || '—'}</td>
       <td className="px-6 py-4 text-[#667085]">
         {manager.centres && manager.centres.length > 0 ? (
           <div className="flex flex-col gap-1">
@@ -48,6 +48,7 @@ function ManagerRow({ manager, onView, onViewCentre }: { manager: any; onView?: 
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
+          <button onClick={() => onEdit?.(manager)} type="button" className="rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-xs font-medium text-[#0b5dd7] hover:bg-[#f3f8ff]">Edit</button>
           <button onClick={() => onView?.(manager)} type="button" className="rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-xs font-medium text-[#1f6ae1] hover:bg-[#f9fafb]">View</button>
           <button type="button" className="rounded-lg p-1.5 text-[#667085] hover:bg-[#f2f4f7]" aria-label="More actions">
             <MoreHorizontal className="h-4 w-4" />
@@ -63,33 +64,82 @@ export default function ManagersPage() {
   const [managers, setManagers] = useState<any[]>([]);
   const [centres, setCentres] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedManager, setSelectedManager] = useState<any | null>(null);
   const [selectedCentre, setSelectedCentre] = useState<any | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingManager, setEditingManager] = useState<any | null>(null);
+  const [editDraft, setEditDraft] = useState<any | null>(null);
   const [newManager, setNewManager] = useState<any>({ name: '', email: '', phone: '', centreId: '' });
+  const PER_PAGE = 10;
 
-  // Load diagnostic centres to allow assigning managers
-  const loadCentres = async () => {
+  const mapManagerItems = (items: Manager[]) =>
+    items.map((it) => ({
+      id: it.id,
+      name: it.fullname?.trim() || it.email,
+      email: it.email,
+      phone: it.phone_number?.trim() || '',
+      centres:
+        it.diagnostic_centre_id && it.diagnostic_centre_name
+          ? [{ id: it.diagnostic_centre_id, name: it.diagnostic_centre_name, address: '', raw: it }]
+          : [],
+      _payload: it,
+    }));
+
+  const loadManagers = async (pageNum = page) => {
+    setLoading(true);
+    setLastError(null);
     try {
-      const json = await apiCall<any>(API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER + '?page=1&per_page=100');
-      const items = Array.isArray(json) ? json : (json.data || json.items || json.centres || []);
-      const mapped = items.map((it: any) => ({ id: String(it.id || it._id || it.diagnostic_centre_id || it.name), name: it.diagnostic_centre_name || it.name || '', address: it.address_text || (it.address && typeof it.address === 'string' ? it.address : ''), raw: it }));
-      setCentres(mapped);
-    } catch (err) {
-      // ignore: centres list is optional
-      setCentres([]);
+      const json = await apiCall<ManagerResult>(
+        `${API_ENDPOINTS.GET_MANAGERS}?assigned=true&page=${pageNum}&per_page=${PER_PAGE}`
+      );
+      const items = Array.isArray(json.data.result) ? json.data.result : [];
+      const pagination = json.data.pagination;
+
+      setTotal(pagination.total);
+      setTotalPages(pagination.total_pages);
+      setPage(pageNum);
+      setManagers(mapManagerItems(items));
+    } catch (err: any) {
+      setLastError(err?.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCentres();
-    // initialize with empty managers (in future fetch from API)
-    setManagers([]);
+    loadManagers(1);
   }, []);
+
+  useEffect(() => {
+    if (!editingManager) {
+      setEditDraft(null);
+      return;
+    }
+
+    const raw = editingManager._payload || {};
+    setEditDraft({
+      fullname: raw.fullname ?? editingManager.name ?? '',
+      email: raw.email ?? editingManager.email ?? '',
+      phone_number: raw.phone_number ?? editingManager.phone ?? '',
+      diagnostic_centre_id: raw.diagnostic_centre_id ?? editingManager.centres?.[0]?.id ?? '',
+    });
+  }, [editingManager]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return managers.filter((m) => !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || (m.phone || '').includes(q));
+    return managers.filter((m) => {
+      if (!q) return true;
+      return (
+        m.name.toLowerCase().includes(q) ||
+        m.email.toLowerCase().includes(q) ||
+        (m.phone || '').includes(q) ||
+        m.centres.some((c: { name: string }) => c.name.toLowerCase().includes(q))
+      );
+    });
   }, [search, managers]);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -116,7 +166,7 @@ export default function ManagersPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatMini icon={Users} label="Total Managers" value={String(managers.length)} />
+        <StatMini icon={Users} label="Total Managers" value={String(total)} />
         <div />
         <div />
         <div />
@@ -145,19 +195,66 @@ export default function ManagersPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading && managers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center text-[#667085]">No managers yet. Add one using the button above.</td>
+                  <td colSpan={4} className="px-6 py-16 text-center text-[#667085]">Loading managers…</td>
+                </tr>
+              ) : lastError ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center text-red-700">
+                    <div className="mx-auto max-w-md">
+                      <p className="mb-3 text-lg font-medium">Failed to load managers</p>
+                      <p className="mb-4 text-sm text-red-800">{lastError}</p>
+                      <div className="flex justify-center">
+                        <button type="button" onClick={() => loadManagers(page)} className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Retry</button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center text-[#667085]">No managers match your search.</td>
                 </tr>
               ) : (
-                filtered.map((m) => <ManagerRow key={m.id} manager={m} onView={setSelectedManager} onViewCentre={setSelectedCentre} />)
+                filtered.map((m) => <ManagerRow key={m.id} manager={m} onView={setSelectedManager} onEdit={setEditingManager} onViewCentre={setSelectedCentre} />)
               )}
             </tbody>
           </table>
         </div>
 
         <div className="flex flex-col gap-4 border-t border-[#e4e7ec] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[#667085]">Showing <span className="font-semibold text-[#1d2939]">{filtered.length}</span> managers</p>
+          <p className="text-sm text-[#667085]">
+            Showing{' '}
+            <span className="font-semibold text-[#1d2939]">
+              {total === 0 ? 0 : (page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)}
+            </span>{' '}
+            of <span className="font-semibold text-[#1d2939]">{total}</span> managers
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page <= 1 || loading}
+              onClick={() => loadManagers(page - 1)}
+              className="cursor-pointer rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-[#1f6ae1] px-3 py-1.5 text-sm font-medium text-white"
+              aria-current="page"
+            >
+              {page}
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages || loading}
+              onClick={() => loadManagers(page + 1)}
+              className="cursor-pointer rounded-lg border border-[#e4e7ec] px-3 py-1.5 text-sm text-[#667085] hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Loading…' : 'Next'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -174,7 +271,7 @@ export default function ManagersPage() {
             </div>
 
             <div className="mt-4 grid gap-3">
-              <div className="inline-flex items-center gap-2 text-sm text-[#374151]"><Phone className="h-4 w-4 text-[#9aa4b2]" /> <span>{selectedManager.phone}</span></div>
+              <div className="inline-flex items-center gap-2 text-sm text-[#374151]"><Phone className="h-4 w-4 text-[#9aa4b2]" /> <span>{selectedManager.phone || '—'}</span></div>
               <div className="mt-2">
                 <h3 className="text-sm font-medium text-[#1d2939]">Assigned Centres</h3>
                 <div className="mt-2 flex flex-col gap-2">
@@ -184,7 +281,7 @@ export default function ManagersPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-[#1d2939]">{c.name}</p>
-                            <p className="text-sm text-[#667085]">{c.address}</p>
+                            {c.address ? <p className="text-sm text-[#667085]">{c.address}</p> : null}
                           </div>
                         </div>
                       </div>
@@ -206,7 +303,7 @@ export default function ManagersPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-[#1d2939]">{selectedCentre.name}</h2>
-                <p className="mt-1 text-sm text-[#667085]">{selectedCentre.address}</p>
+                {selectedCentre.address ? <p className="mt-1 text-sm text-[#667085]">{selectedCentre.address}</p> : null}
               </div>
               <button onClick={() => setSelectedCentre(null)} className="text-sm text-[#667085]">Close</button>
             </div>
@@ -241,6 +338,84 @@ export default function ManagersPage() {
               <div className="mt-3 flex gap-2">
                 <button type="submit" className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Create</button>
                 <button type="button" onClick={() => setIsAdding(false)} className="rounded-lg border border-[#e4e7ec] px-4 py-2 text-sm">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingManager && editDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingManager(null)} />
+          <div className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[#1d2939]">Update Manager</h2>
+              <button onClick={() => setEditingManager(null)} className="text-sm text-[#667085]">Close</button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const centre = centres.find((c) => c.id === editDraft.diagnostic_centre_id);
+                const payload = {
+                  fullname: editDraft.fullname,
+                  email: editDraft.email,
+                  phone_number: editDraft.phone_number,
+                  diagnostic_centre_id: editDraft.diagnostic_centre_id || null,
+                  diagnostic_centre_name: centre?.name || null,
+                };
+
+                setManagers((prev) => prev.map((m) => {
+                  if (m.id !== editingManager.id) return m;
+                  return {
+                    ...m,
+                    name: payload.fullname?.trim() || payload.email,
+                    email: payload.email,
+                    phone: payload.phone_number?.trim() || '',
+                    centres:
+                      payload.diagnostic_centre_id && payload.diagnostic_centre_name
+                        ? [{ id: payload.diagnostic_centre_id, name: payload.diagnostic_centre_name, address: centre?.address || '', raw: centre?.raw || m.centres[0]?.raw }]
+                        : [],
+                    _payload: { ...m._payload, ...payload },
+                  };
+                }));
+
+                setEditingManager(null);
+              }}
+              className="mt-4 grid gap-3"
+            >
+              <input
+                className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm text-[#0f172a] placeholder:text-[#475569]"
+                placeholder="Full name"
+                value={editDraft.fullname}
+                onChange={(e) => setEditDraft((s: any) => ({ ...s, fullname: e.target.value }))}
+              />
+              <input
+                type="email"
+                className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm text-[#0f172a] placeholder:text-[#475569] disabled:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-70"
+                placeholder="Email"
+                value={editDraft.email}
+                onChange={(e) => setEditDraft((s: any) => ({ ...s, email: e.target.value }))}
+                disabled
+              />
+              <input
+                className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm text-[#0f172a] placeholder:text-[#475569]"
+                placeholder="Phone"
+                value={editDraft.phone_number}
+                onChange={(e) => setEditDraft((s: any) => ({ ...s, phone_number: e.target.value }))}
+              />
+              <select
+                value={editDraft.diagnostic_centre_id}
+                onChange={(e) => setEditDraft((s: any) => ({ ...s, diagnostic_centre_id: e.target.value }))}
+                className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm text-[#0f172a]"
+              >
+                <option value="">No centre assigned</option>
+                {centres.map((c) => <option key={c.id} value={c.id}>{c.name || c.id}</option>)}
+              </select>
+
+              <div className="mt-3 flex gap-2">
+                <button type="submit" className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Update</button>
+                <button type="button" onClick={() => setEditingManager(null)} className="rounded-lg border border-[#e4e7ec] px-4 py-2 text-sm">Cancel</button>
               </div>
             </form>
           </div>
