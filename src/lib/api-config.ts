@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
   CENTER_BY_ID: (id: string) => `/centers/${id}`,
   DIAGNOSTIC_CENTRES_OWNER: '/diagnostic_centres/owner',
   CREATE_DIAGNOSTIC_CENTRE: '/diagnostic_centres',
+  GET_MANAGERS: '/managers',
   
   // Tests
   TEST_TYPES: '/tests/types',

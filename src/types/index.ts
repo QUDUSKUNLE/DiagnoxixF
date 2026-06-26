@@ -50,6 +50,32 @@ export interface CentreResult {
   success: boolean;
 }
 
+export interface Manager {
+  id: string;
+  email: string;
+  nin: string | null;
+  user_type: string;
+  fullname: string | null;
+  phone_number: string;
+  email_verified: boolean;
+  email_verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+  created_admin: string;
+  diagnostic_centre_id: string | null;
+  diagnostic_centre_name: string | null;
+  total_count: number;
+}
+
+export interface ManagerResult {
+  data: {
+    result: Manager[];
+    pagination: Pagination;
+  };
+  status: number;
+  success: boolean;
+}
+
 export interface TestType {
   id: string;
   name: string;
