@@ -2,8 +2,9 @@
 
 import BrandLogo from '@/components/BrandLogo';
 import type { DashboardBasePath } from '@/lib/manager-routes';
-import { Bell, ChevronDown, LogOut, Search } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Search, User } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 interface ManagerHeaderProps {
@@ -109,6 +110,14 @@ export default function ManagerHeader({
                   <p className="text-sm font-semibold text-[#1d2939]">{userName}</p>
                   <p className="mt-0.5 text-xs text-[#667085]">Account</p>
                 </div>
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-[#1d2939] transition-colors hover:bg-[#f9fafb]"
+                >
+                  <User className="h-4 w-4 text-[#667085]" />
+                  Profile
+                </Link>
                 <button
                   type="button"
                   role="menuitem"

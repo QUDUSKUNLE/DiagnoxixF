@@ -214,6 +214,15 @@ export function logout(): void {
   clearAuthStorage();
 }
 
+export function updateCurrentUser(updatedFields: Partial<User>): User | null {
+  if (typeof window === 'undefined') return null;
+  const existing = getCurrentUser();
+  if (!existing) return null;
+  const next = { ...existing, ...updatedFields };
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(next));
+  return next;
+}
+
 export { getAuthToken };
 
 export function getCurrentUser(): User | null {
