@@ -17,13 +17,15 @@ export const API_ENDPOINTS = {
   RESEND_VERIFICATION: '/resend_verification',
 
   // Centers
+  CENTER_BY_ID: (id: string) => `/centers/${id}`,
   CENTERS: '/centers',
   CENTERS_SEARCH: '/centers/search',
-  CENTER_BY_ID: (id: string) => `/centers/${id}`,
   DIAGNOSTIC_CENTRES_OWNER: '/diagnostic_centres/owner',
   CREATE_DIAGNOSTIC_CENTRE: '/diagnostic_centres',
   GET_MANAGERS: '/managers',
-  
+  CREATE_MANAGERS: '/diagnostic_centres/managers',
+  ASSIGN_MANAGER: '/diagnostic_centres/assign',
+  UNASSIGN_MANAGER: '/diagnostic_centres/unassign',
   // Tests
   TEST_TYPES: '/tests/types',
   TEST_TYPES_BY_ID: (id: string) => `/tests/types/${id}`,

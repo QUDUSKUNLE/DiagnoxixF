@@ -73,7 +73,7 @@ export default function ManagersPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingManager, setEditingManager] = useState<any | null>(null);
   const [editDraft, setEditDraft] = useState<any | null>(null);
-  const [newManager, setNewManager] = useState<any>({ name: '', email: '', phone: '', centreId: '' });
+  const [newManager, setNewManager] = useState<any>({ first_name: '', last_name: '', email: '' });
   const PER_PAGE = 10;
 
   const mapManagerItems = (items: Manager[]) =>
@@ -89,6 +89,27 @@ export default function ManagersPage() {
       _payload: it,
     }));
 
+  // Load *unassigned* centres from backend: admin=false
+const loadUnassignedCentres = async (pageNum = 1, perPage = 50) => {
+  try {
+    const json = await apiCall<any>(
+      `${API_ENDPOINTS.DIAGNOSTIC_CENTRES_OWNER}?page=${pageNum}&per_page=${perPage}&admin=false`
+    );
+    const items = Array.isArray(json.data?.result) ? json.data.result : [];
+    setCentres(mapCentreItems(items));
+  } catch (err: any) {
+    console.warn('Failed to load unassigned centres for managers page', err);
+  }
+};
+
+  const mapCentreItems = (items: any[]) =>
+    items.map((it: any) => ({
+      id: it.diagnostic_centre_id ?? it.id,
+      name: it.diagnostic_centre_name ?? it.name ?? '',
+      address: it.address ? [it.address.street, it.address.city, it.address.state, it.address.country].filter(Boolean).join(', ') : '',
+      raw: it,
+    }));
+
   const loadManagers = async (pageNum = page) => {
     setLoading(true);
     setLastError(null);
@@ -102,7 +123,20 @@ export default function ManagersPage() {
       setTotal(pagination.total);
       setTotalPages(pagination.total_pages);
       setPage(pageNum);
-      setManagers(mapManagerItems(items));
+
+      const mapped = mapManagerItems(items);
+      setManagers(mapped);
+
+      // If centres weren't loaded from the centres API, derive options from managers' payloads.
+      const derived = items.reduce((acc: any[], it: any) => {
+        if (it.diagnostic_centre_id && it.diagnostic_centre_name) {
+          acc.push({ id: it.diagnostic_centre_id, name: it.diagnostic_centre_name, address: '', raw: it });
+        }
+        return acc;
+      }, []);
+      if (derived.length) {
+        setCentres((prev) => (prev && prev.length ? prev : derived));
+      }
     } catch (err: any) {
       setLastError(err?.message);
     } finally {
@@ -115,17 +149,72 @@ export default function ManagersPage() {
   }, []);
 
   useEffect(() => {
+    loadUnassignedCentres();
+  }, []);
+
+  // Available centres = unassigned centres from backend.
+// Ensure the editing manager's current centre is included (so they can keep it).
+const availableCentres = useMemo(() => {
+  const list = Array.isArray(centres) ? [...centres] : [];
+  const cur = editDraft?.diagnostic_centre_id;
+  if (cur && !list.find((c) => String(c.id) === String(cur))) {
+    // derive current centre from editingManager (payload or centres array)
+    const fromManager =
+      editingManager?.centres?.[0] ||
+      (editingManager?._payload && {
+        id: editingManager._payload.diagnostic_centre_id,
+        name: editingManager._payload.diagnostic_centre_name,
+        raw: editingManager._payload,
+      });
+    if (fromManager && fromManager.id) {
+      list.unshift({
+        id: fromManager.id,
+        name: fromManager.name || String(fromManager.id),
+        address: fromManager.address || '',
+        raw: fromManager.raw || {},
+      });
+    }
+  }
+  return list;
+}, [centres, editDraft, editingManager]);
+
+  useEffect(() => {
     if (!editingManager) {
       setEditDraft(null);
       return;
     }
 
     const raw = editingManager._payload || {};
+
+    const fullname =
+      raw.fullname ??
+      raw.name ??
+      editingManager.name ??
+      editingManager.fullname ??
+      editingManager.email ??
+      '';
+
+    const email = raw.email ?? editingManager.email ?? '';
+
+    const phone_number =
+      raw.phone_number ??
+      raw.phone ??
+      editingManager.phone_number ??
+      editingManager.phone ??
+      '';
+
+    const diagnostic_centre_id =
+      raw.diagnostic_centre_id ??
+      raw.diagnosticCentreId ??
+      editingManager.diagnostic_centre_id ??
+      (editingManager.centres && editingManager.centres[0] ? editingManager.centres[0].id : '') ??
+      '';
+
     setEditDraft({
-      fullname: raw.fullname ?? editingManager.name ?? '',
-      email: raw.email ?? editingManager.email ?? '',
-      phone_number: raw.phone_number ?? editingManager.phone ?? '',
-      diagnostic_centre_id: raw.diagnostic_centre_id ?? editingManager.centres?.[0]?.id ?? '',
+      fullname,
+      email,
+      phone_number,
+      diagnostic_centre_id,
     });
   }, [editingManager]);
 
@@ -144,18 +233,48 @@ export default function ManagersPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In absence of backend endpoint, create locally. In future replace with POST to API.
-    const centre = centres.find((c) => c.id === newManager.centreId);
-    const created = {
-      id: String(Date.now()),
-      name: newManager.name,
+    setLoading(true);
+    setLastError(null);
+
+    const payload = {
       email: newManager.email,
-      phone: newManager.phone,
-      centres: centre ? [centre] : [],
+      first_name: newManager.first_name,
+      last_name: newManager.last_name,
+      user_type: 'DIAGNOSTIC_CENTRE_MANAGER',
     };
-    setManagers((prev) => [created, ...prev]);
-    setNewManager({ name: '', email: '', phone: '', centreId: '' });
-    setIsAdding(false);
+
+    try {
+      const json = await apiCall<any>(
+        `${API_ENDPOINTS.CREATE_MANAGERS}`,
+        {
+          method: API_ENDPOINTS.POST_METHOD,
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const created = json.data || json;
+      const manager = {
+        id: created.id,
+        name: `${newManager.first_name} ${newManager.last_name}`.trim() || newManager.email,
+        email: newManager.email,
+        phone: '',
+        centres: [],
+        _payload: created,
+      };
+
+      setManagers((prev) => [manager, ...prev]);
+      setTotal((prevTotal) => {
+        const nextTotal = prevTotal + 1;
+        setTotalPages((prevPages) => Math.max(prevPages, Math.ceil(nextTotal / PER_PAGE)));
+        return nextTotal;
+      });
+      setNewManager({ first_name: '', last_name: '', email: '' });
+      setIsAdding(false);
+    } catch (err: any) {
+      setLastError(err?.message || String(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -325,19 +444,45 @@ export default function ManagersPage() {
               <button onClick={() => setIsAdding(false)} className="text-sm text-[#667085]">Close</button>
             </div>
 
+            {lastError && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{lastError}</div>}
             <form onSubmit={handleCreate} className="mt-4 grid gap-3">
-              <input className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm" placeholder="Full name" value={newManager.name} onChange={(e) => setNewManager((s: any) => ({ ...s, name: e.target.value }))} required />
-              <input type="email" className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm" placeholder="Email" value={newManager.email} onChange={(e) => setNewManager((s: any) => ({ ...s, email: e.target.value }))} required />
-              <input className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm" placeholder="Phone" value={newManager.phone} onChange={(e) => setNewManager((s: any) => ({ ...s, phone: e.target.value }))} />
-
-              <select value={newManager.centreId} onChange={(e) => setNewManager((s: any) => ({ ...s, centreId: e.target.value }))} className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm">
-                <option value="">Assign to centre (optional)</option>
-                {centres.map((c) => <option key={c.id} value={c.id}>{c.name || c.id}</option>)}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-[#1d2939] mb-1.5">First Name</label>
+                <input
+                  className="w-full rounded-md border border-[#e4e7ec] px-4 py-2.5 text-sm text-[#1d2939] placeholder:text-[#9ca3af] focus:border-[#1f6ae1] focus:outline-none focus:ring-2 focus:ring-[#1f6ae1]/20 transition-colors"
+                  placeholder="Enter first name"
+                  value={newManager.first_name}
+                  onChange={(e) => setNewManager((s: any) => ({ ...s, first_name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#1d2939] mb-1.5">Last Name</label>
+                <input
+                  className="w-full rounded-md border border-[#e4e7ec] px-4 py-2.5 text-sm text-[#1d2939] placeholder:text-[#9ca3af] focus:border-[#1f6ae1] focus:outline-none focus:ring-2 focus:ring-[#1f6ae1]/20 transition-colors"
+                  placeholder="Enter last name"
+                  value={newManager.last_name}
+                  onChange={(e) => setNewManager((s: any) => ({ ...s, last_name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#1d2939] mb-1.5">Email</label>
+                <input
+                  type="email"
+                  className="w-full rounded-md border border-[#e4e7ec] px-4 py-2.5 text-sm text-[#1d2939] placeholder:text-[#9ca3af] focus:border-[#1f6ae1] focus:outline-none focus:ring-2 focus:ring-[#1f6ae1]/20 transition-colors"
+                  placeholder="Enter email address"
+                  value={newManager.email}
+                  onChange={(e) => setNewManager((s: any) => ({ ...s, email: e.target.value }))}
+                  required
+                />
+              </div>
 
               <div className="mt-3 flex gap-2">
-                <button type="submit" className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Create</button>
-                <button type="button" onClick={() => setIsAdding(false)} className="rounded-lg border border-[#e4e7ec] px-4 py-2 text-sm">Cancel</button>
+                <button type="submit" disabled={loading} className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white hover:bg-[#1555c0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  {loading ? 'Creating...' : 'Create'}
+                </button>
+                <button type="button" onClick={() => setIsAdding(false)} className="rounded-lg border border-[#e4e7ec] px-4 py-2 text-sm hover:bg-[#f9fafb] transition-colors">Cancel</button>
               </div>
             </form>
           </div>
@@ -354,33 +499,89 @@ export default function ManagersPage() {
             </div>
 
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
+                setLoading(true);
+                setLastError(null);
+
                 const centre = centres.find((c) => c.id === editDraft.diagnostic_centre_id);
-                const payload = {
-                  fullname: editDraft.fullname,
-                  email: editDraft.email,
-                  phone_number: editDraft.phone_number,
-                  diagnostic_centre_id: editDraft.diagnostic_centre_id || null,
-                  diagnostic_centre_name: centre?.name || null,
+                const assignPayload = {
+                  diagnostic_centre_id: String(editDraft.diagnostic_centre_id || ''),
+                  manager_id: String(editingManager.id),
                 };
 
-                setManagers((prev) => prev.map((m) => {
-                  if (m.id !== editingManager.id) return m;
-                  return {
-                    ...m,
-                    name: payload.fullname?.trim() || payload.email,
-                    email: payload.email,
-                    phone: payload.phone_number?.trim() || '',
-                    centres:
-                      payload.diagnostic_centre_id && payload.diagnostic_centre_name
-                        ? [{ id: payload.diagnostic_centre_id, name: payload.diagnostic_centre_name, address: centre?.address || '', raw: centre?.raw || m.centres[0]?.raw }]
-                        : [],
-                    _payload: { ...m._payload, ...payload },
-                  };
-                }));
+                try {
+                  if (assignPayload.diagnostic_centre_id) {
+                    const json = await apiCall<any>(API_ENDPOINTS.ASSIGN_MANAGER, {
+                      method: API_ENDPOINTS.POST_METHOD,
+                      body: JSON.stringify(assignPayload),
+                    });
+                    const response = json.data || json;
+                    const assignedCentre =
+                      centres.find((c) => c.id === assignPayload.diagnostic_centre_id) ||
+                      (response?.diagnostic_centre || response?.centre) ||
+                      {
+                        id: assignPayload.diagnostic_centre_id,
+                        name: editDraft.diagnostic_centre_id,
+                        address: '',
+                        raw: response,
+                      };
 
-                setEditingManager(null);
+                    setManagers((prev) => prev.map((m) => {
+                      if (m.id !== editingManager.id) return m;
+                      return {
+                        ...m,
+                        name: editDraft.fullname?.trim() || editDraft.email,
+                        email: editDraft.email,
+                        phone: editDraft.phone_number?.trim() || '',
+                        centres: [{
+                          id: assignedCentre.id,
+                          name: assignedCentre.name || assignedCentre.id,
+                          address: assignedCentre.address || '',
+                          raw: assignedCentre.raw || centre?.raw || m.centres[0]?.raw,
+                        }],
+                        _payload: { ...m._payload, ...assignPayload },
+                      };
+                    }));
+                    setCentres((prev) => prev.filter((c) => String(c.id) !== String(assignPayload.diagnostic_centre_id)));
+                  } else {
+                    const unassignedCentre = editingManager.centres?.[0] || centres.find((c) => String(c.id) === String(editDraft.diagnostic_centre_id));
+                    const unassignPayload = {
+                      diagnostic_centre_id: String(editingManager.centres?.[0]?.id || editDraft.diagnostic_centre_id || ''),
+                    };
+                    if (unassignPayload.diagnostic_centre_id) {
+                      await apiCall<any>(API_ENDPOINTS.UNASSIGN_MANAGER, {
+                        method: API_ENDPOINTS.POST_METHOD,
+                        body: JSON.stringify(unassignPayload),
+                      });
+                    }
+
+                    setManagers((prev) => prev.map((m) => {
+                      if (m.id !== editingManager.id) return m;
+                      return {
+                        ...m,
+                        name: editDraft.fullname?.trim() || editDraft.email,
+                        email: editDraft.email,
+                        phone: editDraft.phone_number?.trim() || '',
+                        centres: [],
+                        _payload: { ...m._payload, diagnostic_centre_id: null, diagnostic_centre_name: null },
+                      };
+                    }));
+                    if (unassignedCentre?.id) {
+                      setCentres((prev) =>
+                        prev.some((c) => String(c.id) === String(unassignedCentre.id))
+                          ? prev
+                          : [unassignedCentre, ...prev]
+                      );
+                    }
+                  }
+
+                  setEditingManager(null);
+                } catch (err: any) {
+                  setLastError(err?.message || String(err));
+                } finally {
+                  setLoading(false);
+                }
               }}
               className="mt-4 grid gap-3"
             >
@@ -410,11 +611,34 @@ export default function ManagersPage() {
                 className="rounded-md border border-[#e4e7ec] px-3 py-2 text-sm text-[#0f172a]"
               >
                 <option value="">No centre assigned</option>
-                {centres.map((c) => <option key={c.id} value={c.id}>{c.name || c.id}</option>)}
+                {(() => {
+                  const cur = editDraft?.diagnostic_centre_id;
+                  if (cur && !centres.find((x) => x.id === cur)) {
+                    const fromManager =
+                      editingManager?.centres?.[0] ||
+                      (editingManager?._payload && {
+                        id: editingManager._payload.diagnostic_centre_id,
+                        name: editingManager._payload.diagnostic_centre_name,
+                      });
+                    if (fromManager && fromManager.id) {
+                      return (
+                        <option key={fromManager.id} value={fromManager.id}>
+                          {fromManager.name || fromManager.id}
+                        </option>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+                {availableCentres.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name || c.id}
+                  </option>
+                ))}
               </select>
 
               <div className="mt-3 flex gap-2">
-                <button type="submit" className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Update</button>
+                <button type="submit" className="rounded-lg bg-[#1f6ae1] px-4 py-2 text-sm font-medium text-white">Assign</button>
                 <button type="button" onClick={() => setEditingManager(null)} className="rounded-lg border border-[#e4e7ec] px-4 py-2 text-sm">Cancel</button>
               </div>
             </form>
