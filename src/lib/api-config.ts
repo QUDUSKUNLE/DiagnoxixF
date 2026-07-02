@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   RESET_PASSWORD: '/reset_password',
   VERIFY_EMAIL: '/verify_email',
   RESEND_VERIFICATION: '/resend_verification',
+  ACCOUNT_PROFILE: '/account/profile',
 
   // Centers
   CENTER_BY_ID: (id: string) => `/centers/${id}`,
