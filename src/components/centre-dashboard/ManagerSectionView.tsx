@@ -1,6 +1,8 @@
 import CentresPage from '@/components/centre-dashboard/CentresPage';
 import ManagerSectionPlaceholder from '@/components/centre-dashboard/ManagerSectionPlaceholder';
 import ManagersPage from '@/components/centre-dashboard/ManagersPage';
+import PaymentsPage from '@/components/centre-dashboard/PaymentsPage';
+import VerificationsPage from '@/components/centre-dashboard/VerificationsPage';
 import type { DashboardBasePath } from '@/lib/manager-routes';
 import { managerSections } from '@/lib/manager-routes';
 import { notFound } from 'next/navigation';
@@ -23,6 +25,12 @@ export default function ManagerSectionView({ section, basePath }: ManagerSection
   }
   if (section === 'managers') {
     return <ManagersPage />;
+  }
+  if (section === 'payments') {
+    return <PaymentsPage />;
+  }
+  if (section === 'verifications') {
+    return <VerificationsPage />;
   }
 
   return (
