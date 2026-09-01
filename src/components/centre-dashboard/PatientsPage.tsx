@@ -141,7 +141,7 @@ export default function PatientsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-left text-sm">
+          <table className="w-full min-w-200 text-left text-sm">
             <thead>
               <tr className="border-b border-[#e4e7ec] bg-[#f9fafb]">
                 <th className="px-6 py-4 font-semibold text-[#667085]">Patient</th>

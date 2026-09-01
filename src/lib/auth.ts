@@ -132,8 +132,8 @@ export function login(credentials: LoginCredentials): Promise<User> {
   return loginWithApi(credentials);
 }
 
-export function register(data: RegisterData): Promise<RegisterApiResponse> {
-  return registerWithApi(data)
+export function register(credentials: RegisterData): Promise<RegisterApiResponse> {
+  return registerWithApi(credentials)
 }
 
 export async function forgotPassword(email: string): Promise<void> {
@@ -152,15 +152,15 @@ export async function forgotPassword(email: string): Promise<void> {
   }
 }
 
-export async function resetPassword(data: ResetPasswordRequest): Promise<User> {
+export async function resetPassword(credentials: ResetPasswordRequest): Promise<User> {
   const response = await fetch(getApiUrl(API_ENDPOINTS.RESET_PASSWORD), {
     method: API_ENDPOINTS.POST_METHOD,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: data.email,
-      token: data.token,
-      new_password: data.password, 
-      confirm_password: data.confirmPassword }),
+      email: credentials.email,
+      token: credentials.token,
+      new_password: credentials.password, 
+      confirm_password: credentials.confirmPassword }),
   });
 
   const body = (await response.json().catch(() => ({}))) as any;
